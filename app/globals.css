@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/*
+ * This portal is intentionally a single consistent light theme (not adaptive to system
+ * dark mode) — body background/text color are set via Tailwind utility classes in
+ * app/[locale]/layout.tsx instead of plain CSS here, so nothing should override them.
+ */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
