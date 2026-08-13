@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { computeFee, computeShares, type FeeMethod } from "@/lib/finance";
 import type { Dictionary } from "@/lib/i18n/getDictionary";
 import type { PartnerRow } from "@/lib/types/database";
+import type { ReservationActionState } from "@/lib/actions/reservations";
 
 export interface ReservationFormValues {
   guestName: string;
@@ -48,10 +49,11 @@ export function ReservationForm({
   defaultValues,
 }: {
   dict: Dictionary;
-  action: (formData: FormData) => void;
+  action: (prevState: ReservationActionState, formData: FormData) => Promise<ReservationActionState>;
   partners: PartnerRow[];
   defaultValues?: Partial<ReservationFormValues>;
 }) {
+  const [state, formAction, isPending] = useActionState(action, {});
   const [values, setValues] = useState<ReservationFormValues>({
     ...EMPTY_VALUES,
     ...defaultValues,
@@ -84,7 +86,10 @@ export function ReservationForm({
   const labelClass = "block text-sm font-medium text-gray-700";
 
   return (
-    <form action={action} className="space-y-5">
+    <form action={formAction} className="space-y-5">
+      {state.error && (
+        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+      )}
       <div>
         <label className={labelClass} htmlFor="guestName">
           {t.guestName}
@@ -359,9 +364,10 @@ export function ReservationForm({
 
       <button
         type="submit"
-        className="w-full rounded-md bg-gray-900 px-4 py-2.5 text-base font-medium text-white"
+        disabled={isPending}
+        className="w-full rounded-md bg-gray-900 px-4 py-2.5 text-base font-medium text-white disabled:opacity-60"
       >
-        {dict.common.save}
+        {isPending ? dict.common.loading : dict.common.save}
       </button>
     </form>
   );

@@ -49,6 +49,12 @@ push` + running `seed.sql` works too.)
 After running the migrations, check **Authentication → Policies** in the dashboard and confirm
 RLS shows as enabled on all 6 tables.
 
+**Optional:** `supabase/seed_historical_reservations.sql` imports the 16 real reservations from
+the original Excel sheet ("عملاء الأستاذ سلمان"), with partner shares computed at the confirmed
+ownership %. Its totals (89 nights, 37,550 SAR rent, 3,450 SAR commission, 30,841 SAR net) were
+checked against that sheet's own summary tab before writing it, so the numbers are exactly what
+was already being tracked — just now split per partner. Run it once, after `seed.sql`.
+
 ### 4. Create the 5 auth users
 
 In **Authentication → Users**, click "Add user" and create one user per person, by email —
