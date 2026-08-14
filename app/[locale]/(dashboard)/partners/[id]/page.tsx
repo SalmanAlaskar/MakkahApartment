@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import type { Locale } from "@/lib/i18n/config";
+import type { PartnerRow, PayoutStatus } from "@/lib/types/database";
 
 export default async function PartnerDetailPage({
   params,
@@ -14,46 +15,54 @@ export default async function PartnerDetailPage({
   if (!user || !canSeePartnerShares(user.role)) redirect(`/${locale}/dashboard`);
 
   const dict = getDictionary(locale);
-  const supabase = await createClient();
-  const { data: partner } = await supabase.from("partners").select("*").eq("id", id).single();
+  const partnerRows = await query<PartnerRow>(`select * from partners where id = $1`, [id]);
+  const partner = partnerRows[0];
   if (!partner) notFound();
 
-  const [{ data: shareRows }, { data: billShareRows }] = await Promise.all([
-    supabase
-      .from("reservation_shares")
-      .select("id, reservation_id, share_amount, payout_status")
-      .eq("partner_id", id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("monthly_expense_shares")
-      .select("id, monthly_expense_id, share_amount, payout_status")
-      .eq("partner_id", id)
-      .order("created_at", { ascending: false }),
+  type ReservationShareRow = { id: string; reservation_id: string; share_amount: number; payout_status: PayoutStatus };
+  type BillShareRow = { id: string; monthly_expense_id: string; share_amount: number; payout_status: PayoutStatus };
+
+  const [shareRows, billShareRows] = await Promise.all([
+    query<ReservationShareRow>(
+      `select id, reservation_id, share_amount, payout_status
+       from reservation_shares where partner_id = $1
+       order by created_at desc`,
+      [id],
+    ),
+    query<BillShareRow>(
+      `select id, monthly_expense_id, share_amount, payout_status
+       from monthly_expense_shares where partner_id = $1
+       order by created_at desc`,
+      [id],
+    ),
   ]);
 
-  const reservationIds = (shareRows ?? []).map((s) => s.reservation_id);
-  const { data: reservations } =
+  const reservationIds = shareRows.map((s) => s.reservation_id);
+  const reservations =
     reservationIds.length > 0
-      ? await supabase
-          .from("reservations")
-          .select("id, guest_name, check_in, check_out")
-          .in("id", reservationIds)
-      : { data: [] };
+      ? await query<{ id: string; guest_name: string; check_in: string; check_out: string }>(
+          `select id, guest_name, check_in, check_out from reservations where id = any($1)`,
+          [reservationIds],
+        )
+      : [];
 
-  const reservationById = new Map((reservations ?? []).map((r) => [r.id, r]));
-  const rows = (shareRows ?? []).map((s) => ({
+  const reservationById = new Map(reservations.map((r) => [r.id, r]));
+  const rows = shareRows.map((s) => ({
     ...s,
     reservation: reservationById.get(s.reservation_id),
   }));
 
-  const expenseIds = (billShareRows ?? []).map((s) => s.monthly_expense_id);
-  const { data: expenses } =
+  const expenseIds = billShareRows.map((s) => s.monthly_expense_id);
+  const expenses =
     expenseIds.length > 0
-      ? await supabase.from("monthly_expenses").select("id, month").in("id", expenseIds)
-      : { data: [] };
+      ? await query<{ id: string; month: string }>(
+          `select id, month from monthly_expenses where id = any($1)`,
+          [expenseIds],
+        )
+      : [];
 
-  const expenseById = new Map((expenses ?? []).map((e) => [e.id, e]));
-  const billRows = (billShareRows ?? []).map((s) => ({
+  const expenseById = new Map(expenses.map((e) => [e.id, e]));
+  const billRows = billShareRows.map((s) => ({
     ...s,
     expense: expenseById.get(s.monthly_expense_id),
   }));

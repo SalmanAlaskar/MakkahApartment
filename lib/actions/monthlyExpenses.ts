@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { pool, withTransaction } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { computeShares, round2 } from "@/lib/finance";
 import { monthlyExpenseFormSchema } from "@/lib/validation/monthlyExpense";
@@ -53,21 +53,41 @@ export async function upsertMonthlyExpense(
     // <input type="month"> gives "YYYY-MM"; monthly_expenses.month is always the 1st of the month.
     const monthDate = input.month.length === 7 ? `${input.month}-01` : input.month;
 
-    const supabase = await createClient();
-    const { error } = await supabase.rpc("upsert_monthly_expense_with_shares", {
-      p_month: monthDate,
-      p_internet_bill: input.internetBill,
-      p_electricity_bill: input.electricityBill,
-      p_other_expense: input.otherExpense,
-      p_other_expense_note: input.otherExpenseNote || null,
-      p_shares: shares.map((s) => ({
-        partner_id: s.partnerId,
-        ownership_percent_snapshot: s.ownershipPercentSnapshot,
-        share_amount: s.shareAmount,
-      })),
-    });
+    await withTransaction(async (client) => {
+      const { rows } = await client.query<{ id: string }>(
+        `insert into monthly_expenses (month, internet_bill, electricity_bill, other_expense, other_expense_note)
+         values ($1,$2,$3,$4,$5)
+         on conflict (month) do update set
+           internet_bill = excluded.internet_bill,
+           electricity_bill = excluded.electricity_bill,
+           other_expense = excluded.other_expense,
+           other_expense_note = excluded.other_expense_note,
+           updated_at = now()
+         returning id`,
+        [monthDate, input.internetBill, input.electricityBill, input.otherExpense, input.otherExpenseNote || null],
+      );
+      const expenseId = rows[0].id;
 
-    if (error) throw error;
+      for (const share of shares) {
+        // Same "reset to pending on a changed amount" rule as reservation shares.
+        await client.query(
+          `insert into monthly_expense_shares (monthly_expense_id, partner_id, ownership_percent_snapshot, share_amount)
+           values ($1,$2,$3,$4)
+           on conflict (monthly_expense_id, partner_id) do update set
+             ownership_percent_snapshot = excluded.ownership_percent_snapshot,
+             share_amount = excluded.share_amount,
+             payout_status = case
+               when monthly_expense_shares.share_amount is distinct from excluded.share_amount then 'pending'
+               else monthly_expense_shares.payout_status
+             end,
+             paid_at = case
+               when monthly_expense_shares.share_amount is distinct from excluded.share_amount then null
+               else monthly_expense_shares.paid_at
+             end`,
+          [expenseId, share.partnerId, share.ownershipPercentSnapshot, share.shareAmount],
+        );
+      }
+    });
   } catch (err) {
     return { error: describeError(err) };
   }
@@ -91,17 +111,13 @@ export async function updateMonthlyExpenseShareStatus(
     throw new Error("Not authorized to update payout status");
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("monthly_expense_shares")
-    .update({
-      payout_status: nextStatus,
-      paid_at: nextStatus === "paid" ? new Date().toISOString() : null,
-    })
-    .eq("monthly_expense_id", monthlyExpenseId)
-    .eq("partner_id", partnerId);
-
-  if (error) throw error;
+  await pool.query(
+    `update monthly_expense_shares set
+       payout_status = $3,
+       paid_at = case when $3 = 'paid' then now() else null end
+     where monthly_expense_id = $1 and partner_id = $2`,
+    [monthlyExpenseId, partnerId, nextStatus],
+  );
 
   revalidatePath(`/${locale}/settings/bills`);
   revalidatePath(`/${locale}/partners`);

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, canManageReservations } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import type { Locale } from "@/lib/i18n/config";
@@ -18,11 +18,19 @@ export default async function ReservationsPage({
   const { locale } = (await params) as { locale: Locale };
   const dict = getDictionary(locale);
   const user = await getCurrentUser();
-  const supabase = await createClient();
-  const { data: reservations } = await supabase
-    .from("reservations")
-    .select("id, guest_name, check_in, check_out, gross_amount, net_amount, status")
-    .order("check_in", { ascending: false });
+  const reservations = await query<{
+    id: string;
+    guest_name: string;
+    check_in: string;
+    check_out: string;
+    gross_amount: number;
+    net_amount: number;
+    status: string;
+  }>(
+    `select id, guest_name, check_in, check_out, gross_amount, net_amount, status
+     from reservations
+     order by check_in desc`,
+  );
 
   const canManage = user ? canManageReservations(user.role) : false;
   const t = dict.reservations;
@@ -41,7 +49,7 @@ export default async function ReservationsPage({
         )}
       </div>
 
-      {!reservations || reservations.length === 0 ? (
+      {reservations.length === 0 ? (
         <p className="text-sm text-gray-500">{t.noReservations}</p>
       ) : (
         <ul className="space-y-3">

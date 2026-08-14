@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { updatePartner } from "@/lib/actions/settings";
 import type { Locale } from "@/lib/i18n/config";
+import type { PartnerRow, PropertySettingsRow } from "@/lib/types/database";
 
 export default async function SettingsPage({
   params,
@@ -16,11 +17,11 @@ export default async function SettingsPage({
   if (!user || !isAdmin(user.role)) redirect(`/${locale}/dashboard`);
 
   const dict = getDictionary(locale);
-  const supabase = await createClient();
-  const [{ data: property }, { data: partners }] = await Promise.all([
-    supabase.from("property_settings").select("*").limit(1).single(),
-    supabase.from("partners").select("*").order("display_order"),
+  const [propertyRows, partners] = await Promise.all([
+    query<PropertySettingsRow>(`select * from property_settings limit 1`),
+    query<PartnerRow>(`select * from partners order by display_order`),
   ]);
+  const property = propertyRows[0];
 
   return (
     <div className="space-y-6">
@@ -61,7 +62,7 @@ export default async function SettingsPage({
         <h2 className="mb-2 text-sm font-medium text-gray-500">{dict.settings.ownership}</h2>
         <p className="mb-3 text-xs text-amber-700">{dict.settings.editOwnershipWarning}</p>
         <ul className="space-y-3">
-          {(partners ?? []).map((p) => (
+          {partners.map((p) => (
             <li key={p.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
               <form action={updatePartner.bind(null, p.id, locale)} className="space-y-2">
                 <p className="font-medium">{p.name}</p>

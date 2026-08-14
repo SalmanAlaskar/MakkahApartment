@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import type { Locale } from "@/lib/i18n/config";
+import type { PayoutStatus } from "@/lib/types/database";
 
 export default async function PartnersPage({
   params,
@@ -15,18 +16,17 @@ export default async function PartnersPage({
   if (!user || !canSeePartnerShares(user.role)) redirect(`/${locale}/dashboard`);
 
   const dict = getDictionary(locale);
-  const supabase = await createClient();
-  const [{ data: partners }, { data: shares }, { data: billShares }] = await Promise.all([
-    supabase
-      .from("partners")
-      .select("id, name, ownership_percent, capital_contributed")
-      .order("display_order"),
-    supabase.from("reservation_shares").select("partner_id, share_amount, payout_status"),
-    supabase.from("monthly_expense_shares").select("partner_id, share_amount, payout_status"),
+  type ShareTotalRow = { partner_id: string; share_amount: number; payout_status: PayoutStatus };
+  const [partners, shares, billShares] = await Promise.all([
+    query<{ id: string; name: string; ownership_percent: number; capital_contributed: number }>(
+      `select id, name, ownership_percent, capital_contributed from partners order by display_order`,
+    ),
+    query<ShareTotalRow>(`select partner_id, share_amount, payout_status from reservation_shares`),
+    query<ShareTotalRow>(`select partner_id, share_amount, payout_status from monthly_expense_shares`),
   ]);
 
   const totals = new Map<string, { total: number; pending: number; paid: number }>();
-  for (const s of shares ?? []) {
+  for (const s of shares) {
     const entry = totals.get(s.partner_id) ?? { total: 0, pending: 0, paid: 0 };
     const amount = Number(s.share_amount);
     entry.total += amount;
@@ -36,7 +36,7 @@ export default async function PartnersPage({
   }
 
   const billTotals = new Map<string, { total: number; pending: number; paid: number }>();
-  for (const s of billShares ?? []) {
+  for (const s of billShares) {
     const entry = billTotals.get(s.partner_id) ?? { total: 0, pending: 0, paid: 0 };
     const amount = Number(s.share_amount);
     entry.total += amount;
@@ -49,7 +49,7 @@ export default async function PartnersPage({
     <div>
       <h1 className="mb-4 text-xl font-semibold">{dict.partners.title}</h1>
       <ul className="space-y-3">
-        {(partners ?? []).map((p) => {
+        {partners.map((p) => {
           const t = totals.get(p.id) ?? { total: 0, pending: 0, paid: 0 };
           const b = billTotals.get(p.id) ?? { total: 0, pending: 0, paid: 0 };
           const netPending = t.pending - b.pending;

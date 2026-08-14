@@ -1,6 +1,5 @@
--- Seed reference data only (partners + property_settings). Do NOT seed `profiles` here —
--- that requires the real auth.users UUIDs, which only exist after the 5 auth users are created
--- in the Supabase dashboard. See README "Setup" section for the profiles seed step.
+-- Seed reference data only (partners + property_settings). Do NOT seed `users` here -- rows are
+-- created automatically the first time each person signs in via magic link (see README "Setup").
 
 insert into property_settings (property_name, unit_number, property_price, transaction_fee, total_acquisition_cost)
 values ('Makkah Apartment', '254', 2020070.50, 101003.53, 2121074.03);

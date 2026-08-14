@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { query } from "@/lib/db";
 import type { UserRole } from "@/lib/types/database";
 
 export interface CurrentUser {
@@ -9,23 +10,21 @@ export interface CurrentUser {
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const supabase = await createClient();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) return null;
+  const session = await auth();
+  if (!session?.user?.id) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, role, partner_id")
-    .eq("id", authData.user.id)
-    .single();
-
-  if (!profile) return null;
+  const rows = await query<{ id: string; name: string | null; role: UserRole; partner_id: string | null }>(
+    `select id, name, role, partner_id from users where id = $1`,
+    [session.user.id],
+  );
+  const row = rows[0];
+  if (!row) return null;
 
   return {
-    id: profile.id,
-    fullName: profile.full_name,
-    role: profile.role,
-    partnerId: profile.partner_id,
+    id: row.id,
+    fullName: row.name ?? session.user.email ?? "",
+    role: row.role,
+    partnerId: row.partner_id,
   };
 }
 
