@@ -66,7 +66,10 @@ export default async function UsersSettingsPage({
                   ))}
                 </select>
               </label>
-              <button type="submit" className="rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white">
+              <button
+                type="submit"
+                className="rounded-md bg-sky-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-sky-700"
+              >
                 {dict.common.save}
               </button>
             </form>

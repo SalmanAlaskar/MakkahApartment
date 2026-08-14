@@ -125,9 +125,9 @@ export default async function DashboardPage({
 function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div
-      className={`rounded-lg border border-gray-200 p-3 shadow-sm ${highlight ? "col-span-2 bg-gray-900 text-white" : "bg-white"}`}
+      className={`rounded-lg border border-gray-200 p-3 shadow-sm ${highlight ? "col-span-2 bg-sky-600 text-white" : "bg-white"}`}
     >
-      <p className={`text-xs ${highlight ? "text-gray-300" : "text-gray-500"}`}>{label}</p>
+      <p className={`text-xs ${highlight ? "text-sky-100" : "text-gray-500"}`}>{label}</p>
       <p className="mt-1 text-lg font-semibold">{value}</p>
     </div>
   );

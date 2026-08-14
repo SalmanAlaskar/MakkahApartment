@@ -21,7 +21,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={typedLocale} dir={dirForLocale(typedLocale)}>
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">{children}</body>
+      <body className="min-h-screen bg-sky-50 text-gray-900 antialiased">{children}</body>
     </html>
   );
 }

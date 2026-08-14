@@ -39,7 +39,7 @@ export function LoginForm({ locale, dict }: { locale: Locale; dict: Dictionary["
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-gray-900 px-4 py-2 text-base font-medium text-white disabled:opacity-60"
+        className="w-full rounded-md bg-sky-600 px-4 py-2 text-base font-medium text-white transition-colors hover:bg-sky-700 disabled:opacity-60"
       >
         {dict.sendLink}
       </button>

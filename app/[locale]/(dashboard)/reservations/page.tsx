@@ -42,7 +42,7 @@ export default async function ReservationsPage({
         {canManage && (
           <Link
             href={`/${locale}/reservations/new`}
-            className="rounded-md bg-gray-900 px-3 py-2 text-sm text-white"
+            className="rounded-md bg-sky-600 px-3 py-2 text-sm text-white transition-colors hover:bg-sky-700"
           >
             {t.new}
           </Link>

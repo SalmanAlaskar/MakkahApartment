@@ -6,5 +6,5 @@
  * app/[locale]/layout.tsx instead of plain CSS here, so nothing should override them.
  */
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Calibri, Candara, "Segoe UI", Tahoma, Arial, sans-serif;
 }
