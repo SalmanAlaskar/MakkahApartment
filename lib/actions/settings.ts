@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { pool } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import type { Locale } from "@/lib/i18n/config";
 import type { UserRole } from "@/lib/types/database";
@@ -19,28 +19,27 @@ export async function updatePartner(partnerId: string, locale: Locale, formData:
   const ownershipPercent = Number(formData.get("ownershipPercent"));
   const capitalContributed = Number(formData.get("capitalContributed"));
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("partners")
-    .update({ ownership_percent: ownershipPercent, capital_contributed: capitalContributed })
-    .eq("id", partnerId);
+  await pool.query(`update partners set ownership_percent = $2, capital_contributed = $3 where id = $1`, [
+    partnerId,
+    ownershipPercent,
+    capitalContributed,
+  ]);
 
-  if (error) throw error;
   revalidatePath(`/${locale}/settings`);
 }
 
-export async function updateProfile(profileId: string, locale: Locale, formData: FormData) {
+export async function updateUser(userId: string, locale: Locale, formData: FormData) {
   await requireAdmin();
   const fullName = String(formData.get("fullName") ?? "");
   const role = String(formData.get("role")) as UserRole;
   const partnerIdRaw = String(formData.get("partnerId") ?? "");
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("profiles")
-    .update({ full_name: fullName, role, partner_id: partnerIdRaw || null })
-    .eq("id", profileId);
+  await pool.query(`update users set name = $2, role = $3, partner_id = $4 where id = $1`, [
+    userId,
+    fullName,
+    role,
+    partnerIdRaw || null,
+  ]);
 
-  if (error) throw error;
   revalidatePath(`/${locale}/settings/users`);
 }

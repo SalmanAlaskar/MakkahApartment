@@ -1,8 +1,11 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
+import { auth } from "@/auth";
 
-export async function proxy(request: NextRequest) {
+// Wrapped with Auth.js's auth() helper (rather than a bare function) because reading the session
+// inside Proxy requires the request to be augmented with `.auth` -- next/headers' headers() (what
+// a bare `await auth()` call relies on in Server Components) isn't available in Proxy's runtime.
+export default auth((request) => {
   const { pathname } = request.nextUrl;
   const segments = pathname.split("/").filter(Boolean);
   const maybeLocale = segments[0];
@@ -16,49 +19,28 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
-
   const locale = maybeLocale;
   const rest = "/" + segments.slice(1).join("/");
-  const isAuthRoute = rest.startsWith("/login") || rest.startsWith("/auth/callback");
+  const isAuthRoute = rest.startsWith("/login");
 
-  if (!user && !isAuthRoute) {
+  if (!request.auth?.user && !isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/login`;
     return NextResponse.redirect(url);
   }
 
-  if (user && rest.startsWith("/login")) {
+  if (request.auth?.user && rest.startsWith("/login")) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/dashboard`;
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
-}
+  return NextResponse.next();
+});
 
+// Auth.js's own routes live under /api/auth and must stay reachable pre-login (the magic-link
+// callback hits /api/auth/callback/resend), so API routes are excluded here rather than gated
+// by the session check above.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import type { Locale } from "@/lib/i18n/config";
+import type { PayoutStatus } from "@/lib/types/database";
 
 function nightsBetween(checkIn: string, checkOut: string): number {
   const ms = new Date(checkOut).getTime() - new Date(checkIn).getTime();
@@ -21,16 +22,26 @@ export default async function DashboardPage({
 
   const dict = getDictionary(locale);
   const d = dict.dashboard;
-  const supabase = await createClient();
 
-  const { data: reservations } = await supabase
-    .from("reservations")
-    .select(
-      "id, guest_name, check_in, check_out, gross_amount, paid_amount, fee_amount, expense_amount, net_amount, status, created_at",
-    )
-    .order("created_at", { ascending: false });
+  const reservations = await query<{
+    id: string;
+    guest_name: string;
+    check_in: string;
+    check_out: string;
+    gross_amount: number;
+    paid_amount: number;
+    fee_amount: number;
+    expense_amount: number;
+    net_amount: number;
+    status: string;
+    created_at: string;
+  }>(
+    `select id, guest_name, check_in, check_out, gross_amount, paid_amount, fee_amount, expense_amount, net_amount, status, created_at
+     from reservations
+     order by created_at desc`,
+  );
 
-  const active = (reservations ?? []).filter((r) => r.status !== "cancelled");
+  const active = reservations.filter((r) => r.status !== "cancelled");
 
   const totals = active.reduce(
     (acc, r) => {
@@ -46,10 +57,12 @@ export default async function DashboardPage({
   );
   const outstanding = totals.gross - totals.paid;
 
-  const { data: monthlyExpenses } = await supabase
-    .from("monthly_expenses")
-    .select("internet_bill, electricity_bill, other_expense");
-  const totalMonthlyBills = (monthlyExpenses ?? []).reduce(
+  const monthlyExpenses = await query<{
+    internet_bill: number;
+    electricity_bill: number;
+    other_expense: number;
+  }>(`select internet_bill, electricity_bill, other_expense from monthly_expenses`);
+  const totalMonthlyBills = monthlyExpenses.reduce(
     (sum, m) => sum + Number(m.internet_bill) + Number(m.electricity_bill) + Number(m.other_expense),
     0,
   );
@@ -57,17 +70,29 @@ export default async function DashboardPage({
   let pendingPayouts = 0;
   let paidPayouts = 0;
   if (canSeePartnerShares(user.role)) {
-    const { data: shares } = await supabase.from("reservation_shares").select("share_amount, payout_status");
-    for (const s of shares ?? []) {
+    const [shares, billShares] = await Promise.all([
+      query<{ share_amount: number; payout_status: PayoutStatus }>(
+        `select share_amount, payout_status from reservation_shares`,
+      ),
+      query<{ share_amount: number; payout_status: PayoutStatus }>(
+        `select share_amount, payout_status from monthly_expense_shares`,
+      ),
+    ]);
+    for (const s of shares) {
       const amount = Number(s.share_amount);
       if (s.payout_status === "paid") paidPayouts += amount;
       else pendingPayouts += amount;
+    }
+    // Net each partner's unsettled share of the monthly bills against what's still owed to them --
+    // a bill already marked paid was settled outside this pool, so it doesn't touch the total.
+    for (const s of billShares) {
+      if (s.payout_status === "pending") pendingPayouts -= Number(s.share_amount);
     }
   }
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = active.filter((r) => r.check_in >= today).slice(0, 5);
-  const recent = (reservations ?? []).slice(0, 5);
+  const recent = reservations.slice(0, 5);
 
   return (
     <div className="space-y-6">

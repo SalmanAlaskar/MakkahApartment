@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import type { PoolClient } from "pg";
+import { pool, withTransaction } from "@/lib/db";
 import { getCurrentUser, canManageReservations, isAdmin } from "@/lib/auth";
-import { computeFee, computeShares } from "@/lib/finance";
+import { computeFee, computeShares, type ShareResult } from "@/lib/finance";
 import { reservationFormSchema } from "@/lib/validation/reservation";
 import { getPartners } from "@/lib/data/partners";
 import type { Locale } from "@/lib/i18n/config";
@@ -61,40 +62,67 @@ export async function createReservation(
       partners.map((p) => ({ partnerId: p.id, ownershipPercent: p.ownership_percent })),
     );
 
-    const supabase = await createClient();
-    const { data, error } = await supabase.rpc("create_reservation_with_shares", {
-      p_guest_name: input.guestName,
-      p_platform: input.platform,
-      p_rental_type: input.rentalType,
-      p_check_in: input.checkIn,
-      p_check_out: input.checkOut,
-      p_gross_amount: input.grossAmount,
-      p_paid_amount: input.paidAmount,
-      p_payment_method: input.paymentMethod || null,
-      p_fee_method: input.feeMethod,
-      p_fee_percent: feePercent,
-      p_fee_amount: feeAmount,
-      p_expense_amount: input.expenseAmount,
-      p_expense_note: input.expenseNote || null,
-      p_net_amount: netAmount,
-      p_status: input.status,
-      p_notes: input.notes || null,
-      p_created_by: user.id,
-      p_shares: shares.map((s) => ({
-        partner_id: s.partnerId,
-        ownership_percent_snapshot: s.ownershipPercentSnapshot,
-        share_amount: s.shareAmount,
-      })),
+    reservationId = await withTransaction(async (client) => {
+      const { rows } = await client.query<{ id: string }>(
+        `insert into reservations (
+           guest_name, platform, rental_type, check_in, check_out, gross_amount, paid_amount,
+           payment_method, fee_method, fee_percent, fee_amount, expense_amount, expense_note,
+           net_amount, status, notes, created_by
+         ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+         returning id`,
+        [
+          input.guestName,
+          input.platform,
+          input.rentalType,
+          input.checkIn,
+          input.checkOut,
+          input.grossAmount,
+          input.paidAmount,
+          input.paymentMethod || null,
+          input.feeMethod,
+          feePercent,
+          feeAmount,
+          input.expenseAmount,
+          input.expenseNote || null,
+          netAmount,
+          input.status,
+          input.notes || null,
+          user.id,
+        ],
+      );
+      const newId = rows[0].id;
+      await upsertShares(client, newId, shares);
+      return newId;
     });
-
-    if (error) throw error;
-    reservationId = data;
   } catch (err) {
     return { error: describeError(err) };
   }
 
   revalidatePath(`/${locale}/reservations`);
   redirect(`/${locale}/reservations/${reservationId}`);
+}
+
+// If the recomputed share amount differs from what's already stored, that partner's payout is
+// forced back to 'pending' rather than silently keeping a stale 'paid' flag on a changed amount.
+async function upsertShares(client: PoolClient, reservationId: string, shares: ShareResult[]) {
+  for (const share of shares) {
+    await client.query(
+      `insert into reservation_shares (reservation_id, partner_id, ownership_percent_snapshot, share_amount)
+       values ($1,$2,$3,$4)
+       on conflict (reservation_id, partner_id) do update set
+         ownership_percent_snapshot = excluded.ownership_percent_snapshot,
+         share_amount = excluded.share_amount,
+         payout_status = case
+           when reservation_shares.share_amount is distinct from excluded.share_amount then 'pending'
+           else reservation_shares.payout_status
+         end,
+         paid_at = case
+           when reservation_shares.share_amount is distinct from excluded.share_amount then null
+           else reservation_shares.paid_at
+         end`,
+      [reservationId, share.partnerId, share.ownershipPercentSnapshot, share.shareAmount],
+    );
+  }
 }
 
 export async function updateReservation(
@@ -121,33 +149,37 @@ export async function updateReservation(
       partners.map((p) => ({ partnerId: p.id, ownershipPercent: p.ownership_percent })),
     );
 
-    const supabase = await createClient();
-    const { error } = await supabase.rpc("update_reservation_with_shares", {
-      p_reservation_id: reservationId,
-      p_guest_name: input.guestName,
-      p_platform: input.platform,
-      p_rental_type: input.rentalType,
-      p_check_in: input.checkIn,
-      p_check_out: input.checkOut,
-      p_gross_amount: input.grossAmount,
-      p_paid_amount: input.paidAmount,
-      p_payment_method: input.paymentMethod || null,
-      p_fee_method: input.feeMethod,
-      p_fee_percent: feePercent,
-      p_fee_amount: feeAmount,
-      p_expense_amount: input.expenseAmount,
-      p_expense_note: input.expenseNote || null,
-      p_net_amount: netAmount,
-      p_status: input.status,
-      p_notes: input.notes || null,
-      p_shares: shares.map((s) => ({
-        partner_id: s.partnerId,
-        ownership_percent_snapshot: s.ownershipPercentSnapshot,
-        share_amount: s.shareAmount,
-      })),
-    });
+    await withTransaction(async (client) => {
+      await client.query(
+        `update reservations set
+           guest_name = $2, platform = $3, rental_type = $4, check_in = $5, check_out = $6,
+           gross_amount = $7, paid_amount = $8, payment_method = $9, fee_method = $10,
+           fee_percent = $11, fee_amount = $12, expense_amount = $13, expense_note = $14,
+           net_amount = $15, status = $16, notes = $17, updated_at = now()
+         where id = $1`,
+        [
+          reservationId,
+          input.guestName,
+          input.platform,
+          input.rentalType,
+          input.checkIn,
+          input.checkOut,
+          input.grossAmount,
+          input.paidAmount,
+          input.paymentMethod || null,
+          input.feeMethod,
+          feePercent,
+          feeAmount,
+          input.expenseAmount,
+          input.expenseNote || null,
+          netAmount,
+          input.status,
+          input.notes || null,
+        ],
+      );
 
-    if (error) throw error;
+      await upsertShares(client, reservationId, shares);
+    });
   } catch (err) {
     return { error: describeError(err) };
   }
@@ -162,9 +194,7 @@ export async function deleteReservation(reservationId: string, locale: Locale) {
     throw new Error("Not authorized to delete reservations");
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("reservations").delete().eq("id", reservationId);
-  if (error) throw error;
+  await pool.query(`delete from reservations where id = $1`, [reservationId]);
 
   revalidatePath(`/${locale}/reservations`);
   redirect(`/${locale}/reservations`);

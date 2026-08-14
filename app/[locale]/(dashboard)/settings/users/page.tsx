@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { updateProfile } from "@/lib/actions/settings";
+import { updateUser } from "@/lib/actions/settings";
 import type { Locale } from "@/lib/i18n/config";
+import type { UserRow, PartnerRow } from "@/lib/types/database";
 
 export default async function UsersSettingsPage({
   params,
@@ -15,24 +16,26 @@ export default async function UsersSettingsPage({
   if (!user || !isAdmin(user.role)) redirect(`/${locale}/dashboard`);
 
   const dict = getDictionary(locale);
-  const supabase = await createClient();
-  const [{ data: profiles }, { data: partners }] = await Promise.all([
-    supabase.from("profiles").select("*").order("created_at"),
-    supabase.from("partners").select("id, name").order("display_order"),
+  const [users, partners] = await Promise.all([
+    query<UserRow>(`select * from users order by created_at`),
+    query<Pick<PartnerRow, "id" | "name">>(`select id, name from partners order by display_order`),
   ]);
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">{dict.settings.users}</h1>
       <ul className="space-y-3">
-        {(profiles ?? []).map((p) => (
+        {users.map((p) => (
           <li key={p.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <form action={updateProfile.bind(null, p.id, locale)} className="space-y-2">
+            <form action={updateUser.bind(null, p.id, locale)} className="space-y-2">
+              <p className="text-xs text-gray-400" dir="ltr">
+                {p.email}
+              </p>
               <label className="block text-xs text-gray-500">
                 {dict.settings.fullName}
                 <input
                   name="fullName"
-                  defaultValue={p.full_name}
+                  defaultValue={p.name ?? ""}
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base"
                 />
               </label>
@@ -56,7 +59,7 @@ export default async function UsersSettingsPage({
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base"
                 >
                   <option value="">{dict.settings.none}</option>
-                  {(partners ?? []).map((partner) => (
+                  {partners.map((partner) => (
                     <option key={partner.id} value={partner.id}>
                       {partner.name}
                     </option>

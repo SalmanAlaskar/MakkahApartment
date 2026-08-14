@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, canManageReservations, canSeePartnerShares, isAdmin } from "@/lib/auth";
 import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
 import { deleteReservation } from "@/lib/actions/reservations";
 import { ShareStatusBadge } from "@/components/reservations/ShareStatusBadge";
 import type { Locale } from "@/lib/i18n/config";
+import type { ReservationRow } from "@/lib/types/database";
 
 export default async function ReservationDetailPage({
   params,
@@ -17,8 +18,8 @@ export default async function ReservationDetailPage({
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/login`);
 
-  const supabase = await createClient();
-  const { data: reservation } = await supabase.from("reservations").select("*").eq("id", id).single();
+  const reservationRows = await query<ReservationRow>(`select * from reservations where id = $1`, [id]);
+  const reservation = reservationRows[0];
   if (!reservation) notFound();
 
   let shares: Array<{
@@ -29,15 +30,15 @@ export default async function ReservationDetailPage({
   }> = [];
 
   if (canSeePartnerShares(user.role)) {
-    const [{ data: shareRows }, { data: partners }] = await Promise.all([
-      supabase
-        .from("reservation_shares")
-        .select("partner_id, share_amount, payout_status")
-        .eq("reservation_id", id),
-      supabase.from("partners").select("id, name"),
+    const [shareRows, partners] = await Promise.all([
+      query<{ partner_id: string; share_amount: number; payout_status: "pending" | "paid" }>(
+        `select partner_id, share_amount, payout_status from reservation_shares where reservation_id = $1`,
+        [id],
+      ),
+      query<{ id: string; name: string }>(`select id, name from partners`),
     ]);
-    const nameById = new Map((partners ?? []).map((p) => [p.id, p.name]));
-    shares = (shareRows ?? []).map((s) => ({
+    const nameById = new Map(partners.map((p) => [p.id, p.name]));
+    shares = shareRows.map((s) => ({
       ...s,
       partnerName: nameById.get(s.partner_id) ?? "",
     }));

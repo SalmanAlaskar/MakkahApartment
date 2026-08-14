@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getCurrentUser, canManageReservations } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getPartners } from "@/lib/data/partners";
 import { updateReservation } from "@/lib/actions/reservations";
 import { ReservationForm } from "@/components/reservations/ReservationForm";
 import type { Locale } from "@/lib/i18n/config";
+import type { ReservationRow } from "@/lib/types/database";
 
 export default async function EditReservationPage({
   params,
@@ -18,8 +19,8 @@ export default async function EditReservationPage({
 
   const dict = getDictionary(locale);
   const partners = await getPartners();
-  const supabase = await createClient();
-  const { data: reservation } = await supabase.from("reservations").select("*").eq("id", id).single();
+  const rows = await query<ReservationRow>(`select * from reservations where id = $1`, [id]);
+  const reservation = rows[0];
   if (!reservation) notFound();
 
   return (

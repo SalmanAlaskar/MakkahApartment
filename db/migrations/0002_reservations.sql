@@ -21,7 +21,7 @@ create table reservations (
   net_amount numeric(12, 2) not null,                -- gross_amount - fee_amount - expense_amount
   status reservation_status not null default 'confirmed',
   notes text,
-  created_by uuid references profiles(id),
+  created_by uuid references users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint check_out_after_check_in check (check_out > check_in),
@@ -53,7 +53,7 @@ create index idx_reservation_shares_partner on reservation_shares(partner_id);
 create index idx_reservation_shares_reservation on reservation_shares(reservation_id);
 
 -- Simple monthly recurring bills (internet/electricity/other) for informational tracking on the
--- dashboard. Not currently netted against partner shares — partner payouts are per-reservation only.
+-- dashboard, and (via monthly_expense_shares, see 0003) netted against partner payouts.
 create table monthly_expenses (
   id uuid primary key default gen_random_uuid(),
   month date not null,                              -- always the 1st of the month
