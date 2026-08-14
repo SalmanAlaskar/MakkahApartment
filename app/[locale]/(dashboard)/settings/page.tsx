@@ -38,7 +38,7 @@ export default async function SettingsPage({
       </div>
 
       {property && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="mb-2 text-sm font-medium text-gray-500">{dict.settings.propertyInfo}</h2>
           <Row label={dict.settings.propertyName} value={property.property_name} />
           <Row label={dict.settings.unitNumber} value={property.unit_number ?? "-"} />
@@ -63,7 +63,7 @@ export default async function SettingsPage({
         <p className="mb-3 text-xs text-amber-700">{dict.settings.editOwnershipWarning}</p>
         <ul className="space-y-3">
           {partners.map((p) => (
-            <li key={p.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <li key={p.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <form action={updatePartner.bind(null, p.id, locale)} className="space-y-2">
                 <p className="font-medium">{p.name}</p>
                 <label className="block text-xs text-gray-500">
@@ -73,7 +73,7 @@ export default async function SettingsPage({
                     type="number"
                     step="0.000001"
                     defaultValue={p.ownership_percent}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
                   />
                 </label>
                 <label className="block text-xs text-gray-500">
@@ -83,7 +83,7 @@ export default async function SettingsPage({
                     type="number"
                     step="0.01"
                     defaultValue={p.capital_contributed}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
                   />
                 </label>
                 <button

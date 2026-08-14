@@ -2,11 +2,12 @@ import Link from "next/link";
 import { query } from "@/lib/db";
 import { getCurrentUser, canManageReservations } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { InboxIcon } from "@/components/layout/icons";
 import type { Locale } from "@/lib/i18n/config";
 
 const STATUS_CLASS: Record<string, string> = {
-  confirmed: "bg-blue-100 text-blue-700",
-  completed: "bg-green-100 text-green-700",
+  confirmed: "bg-sky-100 text-sky-700",
+  completed: "bg-emerald-100 text-emerald-700",
   cancelled: "bg-gray-200 text-gray-600",
 };
 
@@ -50,19 +51,22 @@ export default async function ReservationsPage({
       </div>
 
       {reservations.length === 0 ? (
-        <p className="text-sm text-gray-500">{t.noReservations}</p>
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white/60 py-10 text-sm text-gray-400">
+          <InboxIcon className="h-8 w-8" />
+          {t.noReservations}
+        </div>
       ) : (
         <ul className="space-y-3">
           {reservations.map((r) => (
             <li key={r.id}>
               <Link
                 href={`/${locale}/reservations/${r.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                className="block rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{r.guest_name}</span>
                   <span
-                    className={`rounded px-1.5 py-0.5 text-xs ${STATUS_CLASS[r.status] ?? ""}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[r.status] ?? ""}`}
                   >
                     {t[`status_${r.status}` as keyof typeof t]}
                   </span>

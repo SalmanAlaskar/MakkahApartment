@@ -82,7 +82,7 @@ export default async function MonthlyBillsPage({
             const total = Number(e.internet_bill) + Number(e.electricity_bill) + Number(e.other_expense);
             const shares = sharesByExpense.get(e.id) ?? [];
             return (
-              <li key={e.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <li key={e.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="font-medium" dir="ltr">
                     {e.month.slice(0, 7)}

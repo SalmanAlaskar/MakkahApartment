@@ -80,7 +80,7 @@ export default async function PartnerDetailPage({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <h1 className="text-xl font-semibold">{partner.name}</h1>
         <p className="text-sm text-gray-500">
           {dict.partners.ownershipPercent}: {Number(partner.ownership_percent).toFixed(4)}%
@@ -123,7 +123,7 @@ export default async function PartnerDetailPage({
           {rows.map((r) => (
             <li
               key={r.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm"
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3 text-sm"
             >
               <div>
                 <p className="font-medium">{r.reservation?.guest_name}</p>
@@ -155,7 +155,7 @@ export default async function PartnerDetailPage({
             {billRows.map((r) => (
               <li
                 key={r.id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm"
+                className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3 text-sm"
               >
                 <p className="font-medium" dir="ltr">
                   {r.expense?.month.slice(0, 7)}

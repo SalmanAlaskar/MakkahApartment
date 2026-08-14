@@ -57,7 +57,7 @@ export default async function ReservationDetailPage({
         )}
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <h2 className="font-medium">{reservation.guest_name}</h2>
         <p className="text-sm text-gray-500" dir="ltr">
           {reservation.check_in} → {reservation.check_out}
@@ -89,7 +89,7 @@ export default async function ReservationDetailPage({
       </div>
 
       {canSeePartnerShares(user.role) && shares.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h3 className="mb-2 text-sm font-medium text-gray-500">{t.shareBreakdown}</h3>
           <ul className="space-y-2">
             {shares.map((s) => (

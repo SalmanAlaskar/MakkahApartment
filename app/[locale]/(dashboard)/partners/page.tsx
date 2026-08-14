@@ -57,7 +57,7 @@ export default async function PartnersPage({
             <li key={p.id}>
               <Link
                 href={`/${locale}/partners/${p.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                className="block rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{p.name}</span>

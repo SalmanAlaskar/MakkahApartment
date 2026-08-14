@@ -19,12 +19,18 @@ export function BillShareStatusBadge({
   canToggle: boolean;
 }) {
   const isPaid = status === "paid";
-  const badgeClass = `rounded px-1.5 py-0.5 text-xs ${
-    isPaid ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+  const badgeClass = `inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+    isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
   }`;
+  const dot = <span className={`h-1.5 w-1.5 rounded-full ${isPaid ? "bg-emerald-500" : "bg-amber-500"}`} />;
 
   if (!canToggle) {
-    return <span className={badgeClass}>{isPaid ? dict.shares.paid : dict.shares.pending}</span>;
+    return (
+      <span className={badgeClass}>
+        {dot}
+        {isPaid ? dict.shares.paid : dict.shares.pending}
+      </span>
+    );
   }
 
   const nextStatus: PayoutStatus = isPaid ? "pending" : "paid";
@@ -32,6 +38,7 @@ export function BillShareStatusBadge({
   return (
     <form action={updateMonthlyExpenseShareStatus.bind(null, monthlyExpenseId, partnerId, locale, nextStatus)}>
       <button type="submit" className={badgeClass}>
+        {dot}
         {isPaid ? dict.shares.paid : dict.shares.pending}
       </button>
     </form>

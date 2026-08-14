@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { query } from "@/lib/db";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { InboxIcon } from "@/components/layout/icons";
 import type { Locale } from "@/lib/i18n/config";
 import type { PayoutStatus } from "@/lib/types/database";
 
@@ -98,37 +99,54 @@ export default async function DashboardPage({
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">{d.title}</h1>
 
+      <div className="rounded-2xl bg-gradient-to-br from-sky-600 to-sky-500 p-5 text-white shadow-md">
+        <p className="text-sm text-sky-100">{d.netProfit}</p>
+        <p className="mt-1 text-3xl font-bold">
+          {totals.net.toFixed(2)} <span className="text-base font-medium text-sky-100">{dict.common.sar}</span>
+        </p>
+        <div className="mt-4 flex gap-6 border-t border-sky-400/40 pt-3 text-sm text-sky-100">
+          <span>
+            {d.totalReservations}: <strong className="text-white">{active.length}</strong>
+          </span>
+          <span>
+            {d.totalNights}: <strong className="text-white">{totals.nights}</strong>
+          </span>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label={d.totalReservations} value={String(active.length)} />
-        <StatCard label={d.totalNights} value={String(totals.nights)} />
-        <StatCard label={d.totalRent} value={`${totals.gross.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalCollected} value={`${totals.paid.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalOutstanding} value={`${outstanding.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalCommission} value={`${totals.fee.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalExpenses} value={`${totals.expense.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalMonthlyBills} value={`${totalMonthlyBills.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.netProfit} value={`${totals.net.toFixed(2)} ${dict.common.sar}`} highlight />
         {canSeePartnerShares(user.role) && (
           <>
-            <StatCard label={d.pendingPayouts} value={`${pendingPayouts.toFixed(2)} ${dict.common.sar}`} />
-            <StatCard label={d.paidPayouts} value={`${paidPayouts.toFixed(2)} ${dict.common.sar}`} />
+            <StatCard label={d.pendingPayouts} value={`${pendingPayouts.toFixed(2)} ${dict.common.sar}`} tone="amber" />
+            <StatCard label={d.paidPayouts} value={`${paidPayouts.toFixed(2)} ${dict.common.sar}`} tone="green" />
           </>
         )}
+        <StatCard label={d.totalRent} value={`${totals.gross.toFixed(2)} ${dict.common.sar}`} tone="sky" />
+        <StatCard label={d.totalCollected} value={`${totals.paid.toFixed(2)} ${dict.common.sar}`} tone="green" />
+        <StatCard label={d.totalOutstanding} value={`${outstanding.toFixed(2)} ${dict.common.sar}`} tone="amber" />
+        <StatCard label={d.totalCommission} value={`${totals.fee.toFixed(2)} ${dict.common.sar}`} tone="rose" />
+        <StatCard label={d.totalExpenses} value={`${totals.expense.toFixed(2)} ${dict.common.sar}`} tone="rose" />
+        <StatCard label={d.totalMonthlyBills} value={`${totalMonthlyBills.toFixed(2)} ${dict.common.sar}`} tone="rose" />
       </div>
 
       <Section title={d.upcomingCheckins} locale={locale} items={upcoming} />
-      <Section title={d.recentReservations} locale={locale} items={recent} />
+      <Section title={d.recentReservations} locale={locale} items={recent} emptyMessage={d.noData} />
     </div>
   );
 }
 
-function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+const TONE_BORDER = {
+  sky: "border-s-sky-400",
+  green: "border-s-emerald-400",
+  amber: "border-s-amber-400",
+  rose: "border-s-rose-400",
+} as const;
+
+function StatCard({ label, value, tone }: { label: string; value: string; tone: keyof typeof TONE_BORDER }) {
   return (
-    <div
-      className={`rounded-lg border border-gray-200 p-3 shadow-sm ${highlight ? "col-span-2 bg-sky-600 text-white" : "bg-white"}`}
-    >
-      <p className={`text-xs ${highlight ? "text-sky-100" : "text-gray-500"}`}>{label}</p>
-      <p className="mt-1 text-lg font-semibold">{value}</p>
+    <div className={`rounded-xl border border-gray-200 bg-white p-3 shadow-sm border-s-4 ${TONE_BORDER[tone]}`}>
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
     </div>
   );
 }
@@ -137,12 +155,25 @@ function Section({
   title,
   locale,
   items,
+  emptyMessage,
 }: {
   title: string;
   locale: Locale;
   items: Array<{ id: string; guest_name: string; check_in: string; check_out: string }>;
+  emptyMessage?: string;
 }) {
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    if (!emptyMessage) return null;
+    return (
+      <div>
+        <h2 className="mb-2 text-sm font-medium text-gray-500">{title}</h2>
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white/60 py-8 text-sm text-gray-400">
+          <InboxIcon className="h-8 w-8" />
+          {emptyMessage}
+        </div>
+      </div>
+    );
+  }
   return (
     <div>
       <h2 className="mb-2 text-sm font-medium text-gray-500">{title}</h2>
@@ -151,7 +182,7 @@ function Section({
           <li key={r.id}>
             <Link
               href={`/${locale}/reservations/${r.id}`}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm transition-shadow hover:shadow-md"
             >
               <span>{r.guest_name}</span>
               <span className="text-gray-500" dir="ltr">
