@@ -35,7 +35,11 @@ export function LoginForm({ locale, dict }: { locale: Locale; dict: Dictionary["
           dir="ltr"
         />
       </div>
-      {state.error && <p className="text-sm text-red-600">{dict.error}</p>}
+      {state.error && (
+        <p className="text-sm text-red-600" dir="ltr">
+          {state.error === "required" ? dict.error : state.error}
+        </p>
+      )}
       <button
         type="submit"
         disabled={isPending}

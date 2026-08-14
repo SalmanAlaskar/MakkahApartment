@@ -22,7 +22,10 @@ export async function sendMagicLink(
     await signIn("resend", { email, redirect: false, redirectTo: `/${locale}/dashboard` });
   } catch (err) {
     if (err instanceof AuthError) {
-      return { error: "Something went wrong. Please try again." };
+      // Temporarily surfacing the real cause (type + underlying message) instead of a generic
+      // string -- this is the only diagnostic path available while wiring up a fresh deployment.
+      const cause = (err.cause as { err?: Error } | undefined)?.err;
+      return { error: `[${err.type}] ${cause?.message ?? err.message}` };
     }
     throw err;
   }
