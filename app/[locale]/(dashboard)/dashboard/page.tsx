@@ -57,11 +57,19 @@ export default async function DashboardPage({
   let pendingPayouts = 0;
   let paidPayouts = 0;
   if (canSeePartnerShares(user.role)) {
-    const { data: shares } = await supabase.from("reservation_shares").select("share_amount, payout_status");
+    const [{ data: shares }, { data: billShares }] = await Promise.all([
+      supabase.from("reservation_shares").select("share_amount, payout_status"),
+      supabase.from("monthly_expense_shares").select("share_amount, payout_status"),
+    ]);
     for (const s of shares ?? []) {
       const amount = Number(s.share_amount);
       if (s.payout_status === "paid") paidPayouts += amount;
       else pendingPayouts += amount;
+    }
+    // Net each partner's unsettled share of the monthly bills against what's still owed to them --
+    // a bill already marked paid was settled outside this pool, so it doesn't touch the total.
+    for (const s of billShares ?? []) {
+      if (s.payout_status === "pending") pendingPayouts -= Number(s.share_amount);
     }
   }
 

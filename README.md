@@ -42,9 +42,9 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role key>
 ### 3. Run the database migrations
 
 In the Supabase dashboard, open **SQL Editor** and run each file in `supabase/migrations/` in
-order (`0001_init.sql`, `0002_reservations.sql`, `0003_functions.sql`, `0004_rls.sql`), then run
-`supabase/seed.sql`. (If you have the Supabase CLI linked to the project instead, `supabase db
-push` + running `seed.sql` works too.)
+order (`0001_init.sql`, `0002_reservations.sql`, `0003_functions.sql`, `0004_rls.sql`,
+`0005_monthly_expense_shares.sql`), then run `supabase/seed.sql`. (If you have the Supabase CLI
+linked to the project instead, `supabase db push` + running `seed.sql` works too.)
 
 After running the migrations, check **Authentication → Policies** in the dashboard and confirm
 RLS shows as enabled on all 6 tables.
@@ -112,13 +112,22 @@ money by bank transfer; the app only records status, it never moves money itself
 The property manager can see gross/commission/net totals for their own bookings, but not the
 per-partner breakdown — that stays visible to the 4 partners and admin only.
 
+## Monthly bills
+
+Admin enters each month's internet/electricity/other bills at **Settings → Monthly bills**. Saving
+a month splits its total across the 4 partners by ownership % (same math as reservation shares,
+via `upsert_monthly_expense_with_shares`) and tracks each partner's portion as pending/paid,
+independently of reservation payouts. Every pending bill share is netted against that partner's
+pending reservation payouts wherever a payout total is shown (dashboard, partners list, partner
+detail) — so what's displayed as owed to a partner is already net of bills they haven't settled
+yet. Re-saving a month for a partner whose split amount changed resets that partner's status back
+to pending, same as editing a reservation.
+
 ## Not built yet (intentionally deferred)
 
 - Importing the historical Excel data (the reservation fields already match its columns, so this
   is a straightforward future addition, not a schema change).
 - CSV/PDF statement export.
-- Automatically netting the monthly bills (internet/electricity/other, tracked on the dashboard
-  for visibility) against partner payouts — partner shares are currently per-reservation only.
 
 ## Testing
 

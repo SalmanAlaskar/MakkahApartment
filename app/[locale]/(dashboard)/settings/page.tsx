@@ -26,9 +26,14 @@ export default async function SettingsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{dict.settings.title}</h1>
-        <Link href={`/${locale}/settings/users`} className="text-sm text-gray-600 underline">
-          {dict.settings.users}
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href={`/${locale}/settings/bills`} className="text-sm text-gray-600 underline">
+            {dict.settings.monthlyBills}
+          </Link>
+          <Link href={`/${locale}/settings/users`} className="text-sm text-gray-600 underline">
+            {dict.settings.users}
+          </Link>
+        </div>
       </div>
 
       {property && (

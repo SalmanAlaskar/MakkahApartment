@@ -94,7 +94,10 @@
     "totalEarned": "Total earned",
     "pending": "Pending",
     "paid": "Paid",
-    "history": "Reservation history"
+    "history": "Reservation history",
+    "billsOwed": "Bills owed (unsettled)",
+    "netPending": "Net payable now",
+    "billHistory": "Monthly bill history"
   },
   "shares": {
     "markPaid": "Mark as paid",
@@ -121,6 +124,19 @@
     "editOwnershipWarning": "Changing ownership % only affects future reservations — past splits stay as they were.",
     "fullName": "Full name",
     "linkedPartner": "Linked partner",
-    "none": "None (manager)"
+    "none": "None (manager)",
+    "monthlyBills": "Monthly bills"
+  },
+  "bills": {
+    "title": "Monthly bills",
+    "month": "Month",
+    "internetBill": "Internet",
+    "electricityBill": "Electricity",
+    "otherExpense": "Other",
+    "otherExpenseNote": "Other expense note",
+    "total": "Total",
+    "shareBreakdown": "Partner share breakdown",
+    "save": "Save bill",
+    "history": "Bill history"
   }
 }

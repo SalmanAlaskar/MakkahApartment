@@ -84,6 +84,18 @@ export type MonthlyExpenseRow = {
   updated_at: string;
 }
 
+export type MonthlyExpenseShareRow = {
+  id: string;
+  monthly_expense_id: string;
+  partner_id: string;
+  ownership_percent_snapshot: number;
+  share_amount: number;
+  payout_status: PayoutStatus;
+  paid_at: string | null;
+  paid_note: string | null;
+  created_at: string;
+}
+
 type ReservationShareInput = {
   partner_id: string;
   ownership_percent_snapshot: number;
@@ -132,6 +144,15 @@ type UpdateReservationArgs = {
   p_shares: ReservationShareInput[];
 }
 
+type UpsertMonthlyExpenseArgs = {
+  p_month: string;
+  p_internet_bill: number;
+  p_electricity_bill: number;
+  p_other_expense: number;
+  p_other_expense_note: string | null;
+  p_shares: ReservationShareInput[];
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -171,6 +192,12 @@ export type Database = {
         Update: Partial<MonthlyExpenseRow>;
         Relationships: [];
       };
+      monthly_expense_shares: {
+        Row: MonthlyExpenseShareRow;
+        Insert: Partial<MonthlyExpenseShareRow>;
+        Update: Partial<MonthlyExpenseShareRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -181,6 +208,10 @@ export type Database = {
       update_reservation_with_shares: {
         Args: UpdateReservationArgs;
         Returns: undefined;
+      };
+      upsert_monthly_expense_with_shares: {
+        Args: UpsertMonthlyExpenseArgs;
+        Returns: string;
       };
     };
   };

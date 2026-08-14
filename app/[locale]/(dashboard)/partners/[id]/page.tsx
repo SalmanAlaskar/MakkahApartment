@@ -18,11 +18,18 @@ export default async function PartnerDetailPage({
   const { data: partner } = await supabase.from("partners").select("*").eq("id", id).single();
   if (!partner) notFound();
 
-  const { data: shareRows } = await supabase
-    .from("reservation_shares")
-    .select("id, reservation_id, share_amount, payout_status")
-    .eq("partner_id", id)
-    .order("created_at", { ascending: false });
+  const [{ data: shareRows }, { data: billShareRows }] = await Promise.all([
+    supabase
+      .from("reservation_shares")
+      .select("id, reservation_id, share_amount, payout_status")
+      .eq("partner_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("monthly_expense_shares")
+      .select("id, monthly_expense_id, share_amount, payout_status")
+      .eq("partner_id", id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   const reservationIds = (shareRows ?? []).map((s) => s.reservation_id);
   const { data: reservations } =
@@ -39,12 +46,28 @@ export default async function PartnerDetailPage({
     reservation: reservationById.get(s.reservation_id),
   }));
 
+  const expenseIds = (billShareRows ?? []).map((s) => s.monthly_expense_id);
+  const { data: expenses } =
+    expenseIds.length > 0
+      ? await supabase.from("monthly_expenses").select("id, month").in("id", expenseIds)
+      : { data: [] };
+
+  const expenseById = new Map((expenses ?? []).map((e) => [e.id, e]));
+  const billRows = (billShareRows ?? []).map((s) => ({
+    ...s,
+    expense: expenseById.get(s.monthly_expense_id),
+  }));
+
   const pending = rows
     .filter((r) => r.payout_status === "pending")
     .reduce((sum, r) => sum + Number(r.share_amount), 0);
   const paid = rows
     .filter((r) => r.payout_status === "paid")
     .reduce((sum, r) => sum + Number(r.share_amount), 0);
+  const billPending = billRows
+    .filter((r) => r.payout_status === "pending")
+    .reduce((sum, r) => sum + Number(r.share_amount), 0);
+  const netPending = pending - billPending;
 
   return (
     <div className="space-y-4">
@@ -67,6 +90,20 @@ export default async function PartnerDetailPage({
           <span>{dict.partners.paid}</span>
           <span className="font-medium">
             {paid.toFixed(2)} {dict.common.sar}
+          </span>
+        </div>
+        {billRows.length > 0 && (
+          <div className="flex justify-between text-sm">
+            <span>{dict.partners.billsOwed}</span>
+            <span className="font-medium">
+              -{billPending.toFixed(2)} {dict.common.sar}
+            </span>
+          </div>
+        )}
+        <div className="mt-2 flex justify-between border-t border-gray-100 pt-2 text-sm font-semibold">
+          <span>{dict.partners.netPending}</span>
+          <span>
+            {netPending.toFixed(2)} {dict.common.sar}
           </span>
         </div>
       </div>
@@ -101,6 +138,36 @@ export default async function PartnerDetailPage({
           ))}
         </ul>
       </div>
+
+      {billRows.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-sm font-medium text-gray-500">{dict.partners.billHistory}</h2>
+          <ul className="space-y-2">
+            {billRows.map((r) => (
+              <li
+                key={r.id}
+                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm"
+              >
+                <p className="font-medium" dir="ltr">
+                  {r.expense?.month.slice(0, 7)}
+                </p>
+                <div className="text-end">
+                  <p>
+                    -{Number(r.share_amount).toFixed(2)} {dict.common.sar}
+                  </p>
+                  <p
+                    className={`text-xs ${
+                      r.payout_status === "paid" ? "text-green-600" : "text-yellow-600"
+                    }`}
+                  >
+                    {r.payout_status === "paid" ? dict.shares.paid : dict.shares.pending}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
