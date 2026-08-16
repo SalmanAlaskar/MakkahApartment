@@ -100,6 +100,11 @@ Push this repo to GitHub, import it into a new Vercel project, and add the same 
 `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`
 environment variables in the Vercel project settings.
 
+**Then, in Supabase → Authentication → URL Configuration:** set **Site URL** to your Vercel
+deployment's URL, and add `https://<your-vercel-url>/**` to **Redirect URLs**. Without this,
+magic-link sign-in will fail or redirect somewhere wrong — Supabase only allows redirecting to
+URLs on this allowlist after a link is clicked.
+
 ## What's tracked per reservation
 
 Guest name, booking source (direct/Airbnb/Booking.com/other), check-in/out dates, rent amount,
