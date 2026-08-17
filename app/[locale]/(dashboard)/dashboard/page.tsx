@@ -28,7 +28,7 @@ export default async function DashboardPage({
     .select(
       "id, guest_name, check_in, check_out, gross_amount, paid_amount, fee_amount, expense_amount, net_amount, status, created_at",
     )
-    .order("created_at", { ascending: false });
+    .order("check_in", { ascending: false });
 
   const active = (reservations ?? []).filter((r) => r.status !== "cancelled");
 
