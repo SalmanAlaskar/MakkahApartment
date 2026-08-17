@@ -44,7 +44,7 @@ export async function createReservation(
 ): Promise<ReservationActionState> {
   let reservationId: string;
   try {
-    const user = await requireManagerOrAdmin();
+    await requireManagerOrAdmin();
     const input = parseForm(formData);
     const partners = await getPartners();
 
@@ -79,7 +79,7 @@ export async function createReservation(
       p_net_amount: netAmount,
       p_status: input.status,
       p_notes: input.notes || null,
-      p_created_by: user.id,
+      p_created_by: null,
       p_shares: shares.map((s) => ({
         partner_id: s.partnerId,
         ownership_percent_snapshot: s.ownershipPercentSnapshot,

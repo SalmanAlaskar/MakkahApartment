@@ -107,7 +107,7 @@ type CreateReservationArgs = {
   p_net_amount: number;
   p_status: ReservationStatus;
   p_notes: string | null;
-  p_created_by: string;
+  p_created_by: string | null;
   p_shares: ReservationShareInput[];
 }
 
