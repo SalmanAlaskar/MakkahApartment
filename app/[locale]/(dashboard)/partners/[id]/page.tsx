@@ -49,7 +49,12 @@ export default async function PartnerDetailPage({
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <h1 className="text-xl font-semibold">{partner.name}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold">{partner.name}</h1>
+          <a href={`/${locale}/partners/${id}/export`} className="text-sm text-gray-600 underline">
+            {dict.partners.exportCsv}
+          </a>
+        </div>
         <p className="text-sm text-gray-500">
           {dict.partners.ownershipPercent}: {Number(partner.ownership_percent).toFixed(4)}%
         </p>

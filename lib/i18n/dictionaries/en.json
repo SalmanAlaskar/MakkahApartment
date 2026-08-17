@@ -22,13 +22,10 @@
   },
   "login": {
     "title": "Sign in",
-    "subtitle": "Enter your email to get a sign-in link",
-    "emailLabel": "Email",
-    "emailPlaceholder": "you@example.com",
-    "sendLink": "Send sign-in link",
-    "checkEmail": "Check your email",
-    "checkEmailBody": "We sent a sign-in link to {email}. Open it on this device to continue.",
-    "error": "Something went wrong. Please try again."
+    "subtitle": "Enter the password to continue",
+    "passwordLabel": "Password",
+    "signIn": "Sign in",
+    "error": "Incorrect password."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -94,7 +91,8 @@
     "totalEarned": "Total earned",
     "pending": "Pending",
     "paid": "Paid",
-    "history": "Reservation history"
+    "history": "Reservation history",
+    "exportCsv": "Export CSV"
   },
   "shares": {
     "markPaid": "Mark as paid",

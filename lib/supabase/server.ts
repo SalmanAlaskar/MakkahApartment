@@ -1,29 +1,14 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 
+// Single-owner app: there is no per-user Supabase session anymore (auth is a shared
+// password, not Supabase Auth), so every request just uses the service-role key
+// server-side. RLS policies stay in the database as defense in depth, but this client
+// bypasses them by design — access control happens at the app layer (proxy.ts).
 export async function createClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient<Database>(
+  return createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Called from a Server Component render — safe to ignore since
-            // middleware.ts refreshes the session on every request.
-          }
-        },
-      },
-    },
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
   );
 }

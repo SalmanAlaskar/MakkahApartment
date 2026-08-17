@@ -3,7 +3,11 @@
 A light, mobile-friendly, bilingual (Arabic/English) portal for tracking rental reservations
 and partner payouts for the Makkah apartment (unit 254), replacing the Excel tracking sheet.
 
-**Roles:** admin (Salman), property manager, and 3 partner viewers (Hakeem, Abdulaziz, Basmah).
+**Single-owner tool:** one shared password gates the whole app (no per-person accounts, no
+email/magic-link). Salman adds reservations manually; the 4 partners' shares and payout status
+are tracked automatically, and each partner's history/totals can be exported as a CSV to share
+with them directly.
+
 Every reservation's net amount (rent − manager's commission − cleaning/maintenance expense) is
 split among the 4 partners by fixed ownership percentages, computed from capital contributed
 toward the property's total acquisition cost:
@@ -15,19 +19,18 @@ toward the property's total acquisition cost:
 | Abdulaziz | 9.429185% |
 | Basmah | 4.714593% |
 
-Stack: Next.js (App Router) + Supabase (Postgres + Auth) + Tailwind CSS, deployed on Vercel.
+Stack: Next.js (App Router) + Supabase (Postgres only, service-role access — no Supabase Auth) +
+Tailwind CSS, deployed on Vercel.
 
 ## Setup
 
 ### 1. Create a Supabase project
 
-Sign up at [supabase.com](https://supabase.com) and create a new project (any region close to
-Saudi Arabia, e.g. `eu-central-1` or `ap-south-1`, works fine).
+Sign up at [supabase.com](https://supabase.com) and create a new project.
 
 ### 2. Configure environment variables
 
-Copy `.env.local.example` to `.env.local` and fill in the three values from your Supabase
-project's **Settings → API** page:
+Copy `.env.local.example` to `.env.local` and fill in:
 
 ```bash
 cp .env.local.example .env.local
@@ -35,75 +38,43 @@ cp .env.local.example .env.local
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon public key>
-SUPABASE_SERVICE_ROLE_KEY=<service_role key>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key, from Supabase Settings -> API>
+APP_PASSWORD=<pick a password to log into the app>
+SESSION_SECRET=<any long random string, e.g. `openssl rand -hex 32`>
 ```
+
+There's no Supabase Auth involved — the app connects to Postgres with the service-role key
+server-side only, and `APP_PASSWORD`/`SESSION_SECRET` are entirely this app's own login gate.
 
 ### 3. Run the database migrations
 
 In the Supabase dashboard, open **SQL Editor** and run each file in `supabase/migrations/` in
 order (`0001_init.sql`, `0002_reservations.sql`, `0003_functions.sql`, `0004_rls.sql`), then run
-`supabase/seed.sql`. (If you have the Supabase CLI linked to the project instead, `supabase db
-push` + running `seed.sql` works too.)
-
-After running the migrations, check **Authentication → Policies** in the dashboard and confirm
-RLS shows as enabled on all 6 tables.
+`supabase/seed.sql`.
 
 **Optional:** `supabase/seed_historical_reservations.sql` imports the 16 real reservations from
 the original Excel sheet ("عملاء الأستاذ سلمان"), with partner shares computed at the confirmed
 ownership %. Its totals (89 nights, 37,550 SAR rent, 3,450 SAR commission, 30,841 SAR net) were
-checked against that sheet's own summary tab before writing it, so the numbers are exactly what
-was already being tracked — just now split per partner. Run it once, after `seed.sql`.
+checked against that sheet's own summary tab before writing it. Run it once, after `seed.sql`.
 
-### 4. Create the 5 auth users
+The `profiles` table and role columns still exist in the schema but aren't used by the app
+anymore (the whole app is single-owner) — safe to ignore.
 
-In **Authentication → Users**, click "Add user" and create one user per person, by email —
-login is passwordless (magic link), so no password needs to be set:
-
-- Salman (admin)
-- Hakeem (partner)
-- Abdulaziz (partner)
-- Basmah (partner)
-- The property manager (manager)
-
-### 5. Seed the `profiles` table
-
-Once the 5 users exist, copy each one's UUID from the Authentication → Users list, then run this
-in the SQL Editor (replace the UUIDs and check the partner names match what's in your `partners`
-table — `select id, name from partners;` to confirm):
-
-```sql
-insert into profiles (id, full_name, role, partner_id) values
-  ('<salman-auth-uuid>', 'Salman', 'admin',   (select id from partners where name = 'Salman')),
-  ('<hakeem-auth-uuid>', 'Hakeem', 'partner', (select id from partners where name = 'Hakeem')),
-  ('<abdulaziz-auth-uuid>', 'Abdulaziz', 'partner', (select id from partners where name = 'Abdulaziz')),
-  ('<basmah-auth-uuid>', 'Basmah', 'partner', (select id from partners where name = 'Basmah')),
-  ('<manager-auth-uuid>', 'Property Manager', 'manager', null);
-```
-
-(Roles and partner links can later be edited from the app itself at **Settings → Users**, once
-logged in as admin.)
-
-### 6. Run locally
+### 4. Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Visit `http://localhost:3000` — it redirects to `/ar` by default (toggle to English from the nav
-once logged in).
+Visit `http://localhost:3000` — it redirects to `/ar` by default, then to the login page.
+Log in with `APP_PASSWORD`.
 
-### 7. Deploy
+### 5. Deploy
 
-Push this repo to GitHub, import it into a new Vercel project, and add the same three
-`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`
-environment variables in the Vercel project settings.
-
-**Then, in Supabase → Authentication → URL Configuration:** set **Site URL** to your Vercel
-deployment's URL, and add `https://<your-vercel-url>/**` to **Redirect URLs**. Without this,
-magic-link sign-in will fail or redirect somewhere wrong — Supabase only allows redirecting to
-URLs on this allowlist after a link is clicked.
+Push this repo to GitHub, import it into a Vercel project, and add the same 4 environment
+variables (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `APP_PASSWORD`,
+`SESSION_SECRET`) in the Vercel project settings, for Production/Preview/Development.
 
 ## What's tracked per reservation
 
@@ -111,17 +82,15 @@ Guest name, booking source (direct/Airbnb/Booking.com/other), check-in/out dates
 amount collected from the guest so far, the property manager's commission (entered as a flat SAR
 amount, matching how it's actually charged), cleaning/maintenance expenses with an itemized note,
 and the resulting net amount — which is what gets split among the 4 partners. Each partner's
-share can be marked paid/pending independently (admin-only) once you actually transfer their
-money by bank transfer; the app only records status, it never moves money itself.
+share can be marked paid/pending once the money is actually transferred by bank transfer; the
+app only records status, it never moves money itself.
 
-The property manager can see gross/commission/net totals for their own bookings, but not the
-per-partner breakdown — that stays visible to the 4 partners and admin only.
+Each partner's detail page has an **Export CSV** link — their full reservation/payout history,
+downloadable to send them directly (WhatsApp, email, etc.).
 
 ## Not built yet (intentionally deferred)
 
-- Importing the historical Excel data (the reservation fields already match its columns, so this
-  is a straightforward future addition, not a schema change).
-- CSV/PDF statement export.
+- PDF statement export (CSV only for now).
 - Automatically netting the monthly bills (internet/electricity/other, tracked on the dashboard
   for visibility) against partner payouts — partner shares are currently per-reservation only.
 

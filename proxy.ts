@@ -1,8 +1,8 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
+import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/session";
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split("/").filter(Boolean);
   const maybeLocale = segments[0];
@@ -16,47 +16,24 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
-
   const locale = maybeLocale;
   const rest = "/" + segments.slice(1).join("/");
-  const isAuthRoute = rest.startsWith("/login") || rest.startsWith("/auth/callback");
+  const isAuthRoute = rest.startsWith("/login");
+  const authenticated = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value);
 
-  if (!user && !isAuthRoute) {
+  if (!authenticated && !isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/login`;
     return NextResponse.redirect(url);
   }
 
-  if (user && rest.startsWith("/login")) {
+  if (authenticated && rest.startsWith("/login")) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/dashboard`;
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
+  return NextResponse.next();
 }
 
 export const config = {

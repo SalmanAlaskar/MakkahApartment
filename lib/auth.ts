@@ -1,6 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/session";
 import type { UserRole } from "@/lib/types/database";
 
+// Single-owner app now: one shared password gates everything, so there is exactly one
+// "user" once authenticated. The role-check helpers below are kept (always true) so every
+// existing page/component that calls them continues to compile and work unchanged.
 export interface CurrentUser {
   id: string;
   fullName: string;
@@ -9,34 +13,21 @@ export interface CurrentUser {
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const supabase = await createClient();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) return null;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  if (!verifySessionToken(token)) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, role, partner_id")
-    .eq("id", authData.user.id)
-    .single();
-
-  if (!profile) return null;
-
-  return {
-    id: profile.id,
-    fullName: profile.full_name,
-    role: profile.role,
-    partnerId: profile.partner_id,
-  };
+  return { id: "owner", fullName: "Salman", role: "admin", partnerId: null };
 }
 
-export function canManageReservations(role: UserRole): boolean {
-  return role === "admin" || role === "manager";
+export function canManageReservations(_role?: UserRole): boolean {
+  return true;
 }
 
-export function canSeePartnerShares(role: UserRole): boolean {
-  return role === "admin" || role === "partner";
+export function canSeePartnerShares(_role?: UserRole): boolean {
+  return true;
 }
 
-export function isAdmin(role: UserRole): boolean {
-  return role === "admin";
+export function isAdmin(_role?: UserRole): boolean {
+  return true;
 }
