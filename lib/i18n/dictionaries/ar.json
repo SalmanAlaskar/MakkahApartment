@@ -82,7 +82,15 @@
     "noReservations": "لا توجد حجوزات بعد",
     "filterAll": "الكل",
     "detail": "تفاصيل الحجز",
-    "editRecalcWarning": "تعديل الحجز يعيد حساب حصة كل شريك بنسب الملكية الحالية."
+    "editRecalcWarning": "تعديل الحجز يعيد حساب حصة كل شريك بنسب الملكية الحالية.",
+    "sortBy": "الترتيب حسب",
+    "sort_date_desc": "الأحدث أولاً",
+    "sort_date_asc": "الأقدم أولاً",
+    "sort_amount_desc": "الأعلى صافياً",
+    "sort_amount_asc": "الأقل صافياً",
+    "sort_guest_asc": "اسم النزيل",
+    "exportExcel": "إكسل",
+    "exportPdf": "PDF"
   },
   "partners": {
     "title": "الشركاء",

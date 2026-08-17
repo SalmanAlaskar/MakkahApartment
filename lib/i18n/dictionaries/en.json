@@ -82,7 +82,15 @@
     "noReservations": "No reservations yet",
     "filterAll": "All",
     "detail": "Reservation details",
-    "editRecalcWarning": "Editing recalculates each partner's share using today's ownership percentages."
+    "editRecalcWarning": "Editing recalculates each partner's share using today's ownership percentages.",
+    "sortBy": "Sort by",
+    "sort_date_desc": "Newest first",
+    "sort_date_asc": "Oldest first",
+    "sort_amount_desc": "Highest net",
+    "sort_amount_asc": "Lowest net",
+    "sort_guest_asc": "Guest name",
+    "exportExcel": "Excel",
+    "exportPdf": "PDF"
   },
   "partners": {
     "title": "Partners",

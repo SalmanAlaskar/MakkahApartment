@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canManageReservations } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import {
+  DEFAULT_RESERVATION_SORT,
+  getSortedReservations,
+  isReservationSort,
+  type ReservationSort,
+} from "@/lib/data/reservations";
 import type { Locale } from "@/lib/i18n/config";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -10,19 +15,22 @@ const STATUS_CLASS: Record<string, string> = {
   cancelled: "bg-gray-200 text-gray-600",
 };
 
+const SORT_OPTIONS: ReservationSort[] = ["date_desc", "date_asc", "amount_desc", "amount_asc", "guest_asc"];
+
 export default async function ReservationsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { locale } = (await params) as { locale: Locale };
+  const { sort: sortParam } = await searchParams;
+  const sort = isReservationSort(sortParam) ? sortParam : DEFAULT_RESERVATION_SORT;
+
   const dict = getDictionary(locale);
   const user = await getCurrentUser();
-  const supabase = await createClient();
-  const { data: reservations } = await supabase
-    .from("reservations")
-    .select("id, guest_name, check_in, check_out, gross_amount, net_amount, status")
-    .order("check_in", { ascending: false });
+  const reservations = await getSortedReservations(sort);
 
   const canManage = user ? canManageReservations(user.role) : false;
   const t = dict.reservations;
@@ -41,7 +49,37 @@ export default async function ReservationsPage({
         )}
       </div>
 
-      {!reservations || reservations.length === 0 ? (
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex gap-1.5 overflow-x-auto">
+          {SORT_OPTIONS.map((option) => (
+            <Link
+              key={option}
+              href={`/${locale}/reservations?sort=${option}`}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs ${
+                sort === option ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {t[`sort_${option}` as keyof typeof t]}
+            </Link>
+          ))}
+        </div>
+        <div className="flex shrink-0 gap-2 text-xs">
+          <a
+            href={`/${locale}/reservations/export?format=xlsx&sort=${sort}`}
+            className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-700"
+          >
+            {t.exportExcel}
+          </a>
+          <a
+            href={`/${locale}/reservations/export?format=pdf&sort=${sort}`}
+            className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-700"
+          >
+            {t.exportPdf}
+          </a>
+        </div>
+      </div>
+
+      {reservations.length === 0 ? (
         <p className="text-sm text-gray-500">{t.noReservations}</p>
       ) : (
         <ul className="space-y-3">
