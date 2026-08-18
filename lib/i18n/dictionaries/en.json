@@ -42,7 +42,10 @@
     "paidPayouts": "Paid out",
     "recentReservations": "Recent reservations",
     "upcomingCheckins": "Upcoming check-ins",
-    "noData": "No reservations yet"
+    "noData": "No reservations yet",
+    "filterAll": "All time",
+    "roiTitle": "Return on investment by year",
+    "roiNote": "ROI = that year's net rental income ÷ total acquisition cost (2,121,074.03 SAR). Rental yield only — doesn't account for property value appreciation."
   },
   "reservations": {
     "title": "Reservations",
