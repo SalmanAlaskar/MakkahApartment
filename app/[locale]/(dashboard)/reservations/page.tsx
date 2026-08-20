@@ -7,12 +7,15 @@ import {
   isReservationSort,
   type ReservationSort,
 } from "@/lib/data/reservations";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { StatusPill, type PillTone } from "@/components/ui/StatusPill";
+import { buttonClass } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n/config";
 
-const STATUS_CLASS: Record<string, string> = {
-  confirmed: "bg-blue-100 text-blue-700",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-gray-200 text-gray-600",
+const STATUS_TONE: Record<string, PillTone> = {
+  confirmed: "brand",
+  completed: "ok",
+  cancelled: "neutral",
 };
 
 const SORT_OPTIONS: ReservationSort[] = ["date_desc", "date_asc", "amount_desc", "amount_asc", "guest_asc"];
@@ -37,26 +40,27 @@ export default async function ReservationsPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t.title}</h1>
-        {canManage && (
-          <Link
-            href={`/${locale}/reservations/new`}
-            className="rounded-md bg-gray-900 px-3 py-2 text-sm text-white"
-          >
-            {t.new}
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={t.title}
+        action={
+          canManage ? (
+            <Link href={`/${locale}/reservations/new`} className={buttonClass("primary")}>
+              {t.new}
+            </Link>
+          ) : undefined
+        }
+      />
 
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex gap-1.5 overflow-x-auto">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
           {SORT_OPTIONS.map((option) => (
             <Link
               key={option}
               href={`/${locale}/reservations?sort=${option}`}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs ${
-                sort === option ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+                sort === option
+                  ? "bg-brand text-white"
+                  : "bg-stone-dark/60 text-ink-muted hover:text-ink"
               }`}
             >
               {t[`sort_${option}` as keyof typeof t]}
@@ -66,13 +70,13 @@ export default async function ReservationsPage({
         <div className="flex shrink-0 gap-2 text-xs">
           <a
             href={`/${locale}/reservations/export?format=xlsx&sort=${sort}`}
-            className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-700"
+            className="rounded-lg border border-stone-dark px-2.5 py-1.5 font-medium text-ink-muted transition hover:border-brand/40 hover:text-brand"
           >
             {t.exportExcel}
           </a>
           <a
             href={`/${locale}/reservations/export?format=pdf&sort=${sort}`}
-            className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-700"
+            className="rounded-lg border border-stone-dark px-2.5 py-1.5 font-medium text-ink-muted transition hover:border-brand/40 hover:text-brand"
           >
             {t.exportPdf}
           </a>
@@ -80,35 +84,33 @@ export default async function ReservationsPage({
       </div>
 
       {reservations.length === 0 ? (
-        <p className="text-sm text-gray-500">{t.noReservations}</p>
+        <p className="text-sm text-ink-faint">{t.noReservations}</p>
       ) : (
         <ul className="space-y-3">
           {reservations.map((r) => (
             <li key={r.id}>
               <Link
                 href={`/${locale}/reservations/${r.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                className="block rounded-xl border border-stone-dark bg-surface p-4 shadow-sm transition hover:border-brand/30"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{r.guest_name}</span>
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-xs ${STATUS_CLASS[r.status] ?? ""}`}
-                  >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-ink">{r.guest_name}</span>
+                  <StatusPill tone={STATUS_TONE[r.status] ?? "neutral"}>
                     {t[`status_${r.status}` as keyof typeof t]}
-                  </span>
+                  </StatusPill>
                 </div>
-                <div className="mt-1 text-sm text-gray-500" dir="ltr">
+                <div className="mt-1 text-sm text-ink-faint" dir="ltr">
                   {r.check_in} → {r.check_out}
                 </div>
-                <div className="mt-2 flex justify-between text-sm">
-                  <span className="text-gray-500">{t.grossAmount}</span>
-                  <span>
+                <div className="mt-2.5 flex justify-between border-t border-stone pt-2.5 text-sm">
+                  <span className="text-ink-muted">{t.grossAmount}</span>
+                  <span className="tabular-nums text-ink">
                     {Number(r.gross_amount).toFixed(2)} {dict.common.sar}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span className="text-gray-500">{t.netAmount}</span>
-                  <span>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span className="text-ink-muted">{t.netAmount}</span>
+                  <span className="tabular-nums text-ink">
                     {Number(r.net_amount).toFixed(2)} {dict.common.sar}
                   </span>
                 </div>

@@ -5,6 +5,7 @@ import { computeFee, computeShares, type FeeMethod } from "@/lib/finance";
 import type { Dictionary } from "@/lib/i18n/getDictionary";
 import type { PartnerRow } from "@/lib/types/database";
 import type { ReservationActionState } from "@/lib/actions/reservations";
+import { Card } from "@/components/ui/Card";
 
 export interface ReservationFormValues {
   guestName: string;
@@ -82,278 +83,285 @@ export function ReservationForm({
 
   const t = dict.reservations;
   const inputClass =
-    "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none";
-  const labelClass = "block text-sm font-medium text-gray-700";
+    "mt-1.5 block w-full rounded-lg border border-stone-dark bg-stone/40 px-3.5 py-2.5 text-base text-ink transition focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-soft";
+  const labelClass = "block text-sm font-medium text-ink-muted";
 
   return (
-    <form action={formAction} className="space-y-5">
-      {state.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
-      )}
-      <div>
-        <label className={labelClass} htmlFor="guestName">
-          {t.guestName}
-        </label>
-        <input
-          id="guestName"
-          name="guestName"
-          required
-          value={values.guestName}
-          onChange={(e) => update("guestName", e.target.value)}
-          className={inputClass}
-        />
-      </div>
+    <form action={formAction} className="space-y-4">
+      {state.error && <p className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">{state.error}</p>}
 
-      <div className="grid grid-cols-2 gap-3">
+      <Card className="space-y-4">
         <div>
-          <label className={labelClass} htmlFor="checkIn">
-            {t.checkIn}
+          <label className={labelClass} htmlFor="guestName">
+            {t.guestName}
           </label>
           <input
-            id="checkIn"
-            type="date"
-            name="checkIn"
+            id="guestName"
+            name="guestName"
             required
-            value={values.checkIn}
-            onChange={(e) => update("checkIn", e.target.value)}
+            value={values.guestName}
+            onChange={(e) => update("guestName", e.target.value)}
             className={inputClass}
           />
         </div>
-        <div>
-          <label className={labelClass} htmlFor="checkOut">
-            {t.checkOut}
-          </label>
-          <input
-            id="checkOut"
-            type="date"
-            name="checkOut"
-            required
-            value={values.checkOut}
-            onChange={(e) => update("checkOut", e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass} htmlFor="checkIn">
+              {t.checkIn}
+            </label>
+            <input
+              id="checkIn"
+              type="date"
+              name="checkIn"
+              required
+              value={values.checkIn}
+              onChange={(e) => update("checkIn", e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="checkOut">
+              {t.checkOut}
+            </label>
+            <input
+              id="checkOut"
+              type="date"
+              name="checkOut"
+              required
+              value={values.checkOut}
+              onChange={(e) => update("checkOut", e.target.value)}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass} htmlFor="platform">
+              {t.platform}
+            </label>
+            <select
+              id="platform"
+              name="platform"
+              value={values.platform}
+              onChange={(e) => update("platform", e.target.value)}
+              className={inputClass}
+            >
+              <option value="direct">{t.platform_direct}</option>
+              <option value="airbnb">{t.platform_airbnb}</option>
+              <option value="booking">{t.platform_booking}</option>
+              <option value="other">{t.platform_other}</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="rentalType">
+              {t.rentalType}
+            </label>
+            <select
+              id="rentalType"
+              name="rentalType"
+              value={values.rentalType}
+              onChange={(e) => update("rentalType", e.target.value)}
+              className={inputClass}
+            >
+              <option value="daily">{t.rentalType_daily}</option>
+              <option value="monthly">{t.rentalType_monthly}</option>
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass} htmlFor="grossAmount">
+              {t.grossAmount} ({dict.common.sar})
+            </label>
+            <input
+              id="grossAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              name="grossAmount"
+              required
+              value={values.grossAmount}
+              onChange={(e) => update("grossAmount", e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="paidAmount">
+              {t.paidAmount} ({dict.common.sar})
+            </label>
+            <input
+              id="paidAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              name="paidAmount"
+              required
+              value={values.paidAmount}
+              onChange={(e) => update("paidAmount", e.target.value)}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
         <div>
-          <label className={labelClass} htmlFor="platform">
-            {t.platform}
+          <label className={labelClass} htmlFor="paymentMethod">
+            {t.paymentMethod}
           </label>
           <select
-            id="platform"
-            name="platform"
-            value={values.platform}
-            onChange={(e) => update("platform", e.target.value)}
+            id="paymentMethod"
+            name="paymentMethod"
+            value={values.paymentMethod}
+            onChange={(e) => update("paymentMethod", e.target.value)}
             className={inputClass}
           >
-            <option value="direct">{t.platform_direct}</option>
-            <option value="airbnb">{t.platform_airbnb}</option>
-            <option value="booking">{t.platform_booking}</option>
+            <option value="cash">{t.payment_cash}</option>
+            <option value="bank_transfer">{t.payment_bank_transfer}</option>
             <option value="other">{t.platform_other}</option>
           </select>
         </div>
+      </Card>
+
+      <Card className="space-y-4">
         <div>
-          <label className={labelClass} htmlFor="rentalType">
-            {t.rentalType}
+          <label className={labelClass} htmlFor="feeMethod">
+            {t.feeMethod}
           </label>
           <select
-            id="rentalType"
-            name="rentalType"
-            value={values.rentalType}
-            onChange={(e) => update("rentalType", e.target.value)}
+            id="feeMethod"
+            name="feeMethod"
+            value={values.feeMethod}
+            onChange={(e) => update("feeMethod", e.target.value as FeeMethod)}
             className={inputClass}
           >
-            <option value="daily">{t.rentalType_daily}</option>
-            <option value="monthly">{t.rentalType_monthly}</option>
+            <option value="flat_amount">{t.feeMethod_flat_amount}</option>
+            <option value="percent_of_gross">{t.feeMethod_percent_of_gross}</option>
+          </select>
+
+          {values.feeMethod === "flat_amount" ? (
+            <div className="mt-3">
+              <label className={labelClass} htmlFor="feeAmount">
+                {t.feeAmount} ({dict.common.sar})
+              </label>
+              <input
+                id="feeAmount"
+                type="number"
+                step="0.01"
+                min="0"
+                name="feeAmount"
+                value={values.feeAmount}
+                onChange={(e) => update("feeAmount", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          ) : (
+            <div className="mt-3">
+              <label className={labelClass} htmlFor="feePercent">
+                {t.feePercent}
+              </label>
+              <input
+                id="feePercent"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                name="feePercent"
+                value={values.feePercent}
+                onChange={(e) => update("feePercent", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-stone pt-4">
+          <label className={labelClass} htmlFor="expenseAmount">
+            {t.expenseAmount} ({dict.common.sar})
+          </label>
+          <input
+            id="expenseAmount"
+            type="number"
+            step="0.01"
+            name="expenseAmount"
+            value={values.expenseAmount}
+            onChange={(e) => update("expenseAmount", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="expenseNote">
+            {t.expenseNote}
+          </label>
+          <textarea
+            id="expenseNote"
+            name="expenseNote"
+            rows={2}
+            value={values.expenseNote}
+            onChange={(e) => update("expenseNote", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <label className={labelClass} htmlFor="status">
+            {t.status}
+          </label>
+          <select
+            id="status"
+            name="status"
+            value={values.status}
+            onChange={(e) => update("status", e.target.value)}
+            className={inputClass}
+          >
+            <option value="confirmed">{t.status_confirmed}</option>
+            <option value="cancelled">{t.status_cancelled}</option>
+            <option value="completed">{t.status_completed}</option>
           </select>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass} htmlFor="grossAmount">
-            {t.grossAmount} ({dict.common.sar})
+          <label className={labelClass} htmlFor="notes">
+            {t.notes}
           </label>
-          <input
-            id="grossAmount"
-            type="number"
-            step="0.01"
-            min="0"
-            name="grossAmount"
-            required
-            value={values.grossAmount}
-            onChange={(e) => update("grossAmount", e.target.value)}
+          <textarea
+            id="notes"
+            name="notes"
+            rows={2}
+            value={values.notes}
+            onChange={(e) => update("notes", e.target.value)}
             className={inputClass}
           />
         </div>
-        <div>
-          <label className={labelClass} htmlFor="paidAmount">
-            {t.paidAmount} ({dict.common.sar})
-          </label>
-          <input
-            id="paidAmount"
-            type="number"
-            step="0.01"
-            min="0"
-            name="paidAmount"
-            required
-            value={values.paidAmount}
-            onChange={(e) => update("paidAmount", e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
+      </Card>
 
-      <div>
-        <label className={labelClass} htmlFor="paymentMethod">
-          {t.paymentMethod}
-        </label>
-        <select
-          id="paymentMethod"
-          name="paymentMethod"
-          value={values.paymentMethod}
-          onChange={(e) => update("paymentMethod", e.target.value)}
-          className={inputClass}
-        >
-          <option value="cash">{t.payment_cash}</option>
-          <option value="bank_transfer">{t.payment_bank_transfer}</option>
-          <option value="other">{t.platform_other}</option>
-        </select>
-      </div>
-
-      <fieldset className="rounded-md border border-gray-200 p-3">
-        <label className={labelClass} htmlFor="feeMethod">
-          {t.feeMethod}
-        </label>
-        <select
-          id="feeMethod"
-          name="feeMethod"
-          value={values.feeMethod}
-          onChange={(e) => update("feeMethod", e.target.value as FeeMethod)}
-          className={inputClass}
-        >
-          <option value="flat_amount">{t.feeMethod_flat_amount}</option>
-          <option value="percent_of_gross">{t.feeMethod_percent_of_gross}</option>
-        </select>
-
-        {values.feeMethod === "flat_amount" ? (
-          <div className="mt-3">
-            <label className={labelClass} htmlFor="feeAmount">
-              {t.feeAmount} ({dict.common.sar})
-            </label>
-            <input
-              id="feeAmount"
-              type="number"
-              step="0.01"
-              min="0"
-              name="feeAmount"
-              value={values.feeAmount}
-              onChange={(e) => update("feeAmount", e.target.value)}
-              className={inputClass}
-            />
-          </div>
-        ) : (
-          <div className="mt-3">
-            <label className={labelClass} htmlFor="feePercent">
-              {t.feePercent}
-            </label>
-            <input
-              id="feePercent"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              name="feePercent"
-              value={values.feePercent}
-              onChange={(e) => update("feePercent", e.target.value)}
-              className={inputClass}
-            />
-          </div>
-        )}
-      </fieldset>
-
-      <div>
-        <label className={labelClass} htmlFor="expenseAmount">
-          {t.expenseAmount} ({dict.common.sar})
-        </label>
-        <input
-          id="expenseAmount"
-          type="number"
-          step="0.01"
-          name="expenseAmount"
-          value={values.expenseAmount}
-          onChange={(e) => update("expenseAmount", e.target.value)}
-          className={inputClass}
-        />
-      </div>
-
-      <div>
-        <label className={labelClass} htmlFor="expenseNote">
-          {t.expenseNote}
-        </label>
-        <textarea
-          id="expenseNote"
-          name="expenseNote"
-          rows={2}
-          value={values.expenseNote}
-          onChange={(e) => update("expenseNote", e.target.value)}
-          className={inputClass}
-        />
-      </div>
-
-      <div>
-        <label className={labelClass} htmlFor="status">
-          {t.status}
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={values.status}
-          onChange={(e) => update("status", e.target.value)}
-          className={inputClass}
-        >
-          <option value="confirmed">{t.status_confirmed}</option>
-          <option value="cancelled">{t.status_cancelled}</option>
-          <option value="completed">{t.status_completed}</option>
-        </select>
-      </div>
-
-      <div>
-        <label className={labelClass} htmlFor="notes">
-          {t.notes}
-        </label>
-        <textarea
-          id="notes"
-          name="notes"
-          rows={2}
-          value={values.notes}
-          onChange={(e) => update("notes", e.target.value)}
-          className={inputClass}
-        />
-      </div>
-
-      <div className="rounded-md bg-gray-100 p-4">
-        <div className="flex justify-between text-sm">
+      <div className="rounded-xl border border-brand-soft bg-brand-soft/50 p-4">
+        <div className="flex justify-between text-sm text-ink-muted">
           <span>{t.feeAmount}</span>
-          <span>
+          <span className="tabular-nums text-ink">
             {preview.feeAmount.toFixed(2)} {dict.common.sar}
           </span>
         </div>
-        <div className="mt-1 flex justify-between text-sm font-semibold">
-          <span>{t.netAmount}</span>
-          <span>
+        <div className="mt-1.5 flex justify-between text-sm font-semibold">
+          <span className="text-ink">{t.netAmount}</span>
+          <span className="tabular-nums text-brand">
             {preview.netAmount.toFixed(2)} {dict.common.sar}
           </span>
         </div>
-        <div className="mt-3 space-y-1 border-t border-gray-200 pt-3">
-          <p className="text-xs font-medium text-gray-500">{t.shareBreakdown}</p>
+        <div className="mt-3 space-y-1.5 border-t border-brand/15 pt-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">{t.shareBreakdown}</p>
           {preview.shares.map((share) => {
             const partner = partners.find((p) => p.id === share.partnerId);
             return (
               <div key={share.partnerId} className="flex justify-between text-sm">
-                <span>{partner?.name}</span>
-                <span>
+                <span className="text-ink-muted">{partner?.name}</span>
+                <span className="tabular-nums text-ink">
                   {share.shareAmount.toFixed(2)} {dict.common.sar}
                 </span>
               </div>
@@ -365,7 +373,7 @@ export function ReservationForm({
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-gray-900 px-4 py-2.5 text-base font-medium text-white disabled:opacity-60"
+        className="w-full rounded-lg bg-brand px-4 py-3 text-base font-medium text-white transition hover:bg-brand-dark disabled:opacity-60"
       >
         {isPending ? dict.common.loading : dict.common.save}
       </button>

@@ -16,7 +16,7 @@ export function LocaleToggle({ locale, label }: { locale: Locale; label: string 
   }
 
   return (
-    <button type="button" onClick={toggle} className="text-sm text-gray-600 hover:text-gray-900">
+    <button type="button" onClick={toggle} className="text-sm font-medium text-ink-muted transition hover:text-brand">
       {label}
     </button>
   );

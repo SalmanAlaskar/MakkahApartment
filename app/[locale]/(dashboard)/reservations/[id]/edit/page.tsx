@@ -5,6 +5,7 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getPartners } from "@/lib/data/partners";
 import { updateReservation } from "@/lib/actions/reservations";
 import { ReservationForm } from "@/components/reservations/ReservationForm";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function EditReservationPage({
@@ -24,8 +25,10 @@ export default async function EditReservationPage({
 
   return (
     <div>
-      <h1 className="mb-2 text-xl font-semibold">{dict.common.edit}</h1>
-      <p className="mb-4 text-sm text-amber-700">{dict.reservations.editRecalcWarning}</p>
+      <PageHeader title={dict.common.edit} backHref={`/${locale}/reservations/${id}`} />
+      <p className="mb-4 rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+        {dict.reservations.editRecalcWarning}
+      </p>
       <ReservationForm
         dict={dict}
         partners={partners}

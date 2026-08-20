@@ -4,6 +4,7 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getPartners } from "@/lib/data/partners";
 import { createReservation } from "@/lib/actions/reservations";
 import { ReservationForm } from "@/components/reservations/ReservationForm";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function NewReservationPage({
@@ -20,7 +21,7 @@ export default async function NewReservationPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold">{dict.reservations.new}</h1>
+      <PageHeader title={dict.reservations.new} backHref={`/${locale}/reservations`} />
       <ReservationForm dict={dict} partners={partners} action={createReservation.bind(null, locale)} />
     </div>
   );

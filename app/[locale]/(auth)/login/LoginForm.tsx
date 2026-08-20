@@ -12,9 +12,12 @@ export function LoginForm({ locale, dict }: { locale: Locale; dict: Dictionary["
   );
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <form
+      action={formAction}
+      className="space-y-4 rounded-2xl border border-stone-dark bg-surface p-6 shadow-sm"
+    >
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="password" className="block text-sm font-medium text-ink">
           {dict.passwordLabel}
         </label>
         <input
@@ -23,15 +26,17 @@ export function LoginForm({ locale, dict }: { locale: Locale; dict: Dictionary["
           type="password"
           required
           autoFocus
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
+          className="mt-1.5 block w-full rounded-lg border border-stone-dark bg-stone/40 px-3.5 py-2.5 text-base text-ink transition focus:border-brand focus:bg-surface focus:outline-none focus:ring-2 focus:ring-brand-soft"
           dir="ltr"
         />
       </div>
-      {state.error && <p className="text-sm text-red-600">{dict.error}</p>}
+      {state.error && (
+        <p className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">{dict.error}</p>
+      )}
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-gray-900 px-4 py-2 text-base font-medium text-white disabled:opacity-60"
+        className="w-full rounded-lg bg-brand px-4 py-2.5 text-base font-medium text-white transition hover:bg-brand-dark disabled:opacity-60"
       >
         {dict.signIn}
       </button>

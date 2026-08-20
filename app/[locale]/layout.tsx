@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "../globals.css";
 import { dirForLocale, isLocale, type Locale } from "@/lib/i18n/config";
+
+const plexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-arabic",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Makkah Apartment",
@@ -20,8 +28,8 @@ export default async function LocaleLayout({
   const typedLocale: Locale = locale;
 
   return (
-    <html lang={typedLocale} dir={dirForLocale(typedLocale)}>
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">{children}</body>
+    <html lang={typedLocale} dir={dirForLocale(typedLocale)} className={plexArabic.variable}>
+      <body className="min-h-screen bg-stone text-ink antialiased">{children}</body>
     </html>
   );
 }

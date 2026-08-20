@@ -2,6 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
+import { StatusPill } from "@/components/ui/StatusPill";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function PartnerDetailPage({
@@ -48,59 +51,65 @@ export default async function PartnerDetailPage({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{partner.name}</h1>
-          <a href={`/${locale}/partners/${id}/export`} className="text-sm text-gray-600 underline">
+      <PageHeader
+        title={partner.name}
+        backHref={`/${locale}/partners`}
+        action={
+          <a
+            href={`/${locale}/partners/${id}/export`}
+            className="text-sm font-medium text-brand hover:text-brand-dark"
+          >
             {dict.partners.exportCsv}
           </a>
-        </div>
-        <p className="text-sm text-gray-500">
-          {dict.partners.ownershipPercent}: {Number(partner.ownership_percent).toFixed(4)}%
+        }
+      />
+
+      <Card>
+        <p className="text-sm text-ink-muted">
+          {dict.partners.ownershipPercent}:{" "}
+          <span className="font-medium text-ink">{Number(partner.ownership_percent).toFixed(4)}%</span>
         </p>
-        <p className="text-sm text-gray-500">
-          {dict.partners.capitalContributed}: {Number(partner.capital_contributed).toFixed(2)}{" "}
-          {dict.common.sar}
+        <p className="text-sm text-ink-muted">
+          {dict.partners.capitalContributed}:{" "}
+          <span className="font-medium text-ink tabular-nums">
+            {Number(partner.capital_contributed).toFixed(2)} {dict.common.sar}
+          </span>
         </p>
-        <div className="mt-3 flex justify-between text-sm">
-          <span>{dict.partners.pending}</span>
-          <span className="font-medium">
+        <div className="mt-3.5 flex justify-between border-t border-stone pt-3.5 text-sm">
+          <span className="text-ink-muted">{dict.partners.pending}</span>
+          <span className="font-semibold tabular-nums text-warn">
             {pending.toFixed(2)} {dict.common.sar}
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>{dict.partners.paid}</span>
-          <span className="font-medium">
+          <span className="text-ink-muted">{dict.partners.paid}</span>
+          <span className="font-semibold tabular-nums text-ok">
             {paid.toFixed(2)} {dict.common.sar}
           </span>
         </div>
-      </div>
+      </Card>
 
       <div>
-        <h2 className="mb-2 text-sm font-medium text-gray-500">{dict.partners.history}</h2>
+        <h2 className="mb-2 text-sm font-medium text-ink-muted">{dict.partners.history}</h2>
         <ul className="space-y-2">
           {rows.map((r) => (
             <li
               key={r.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm"
+              className="flex items-center justify-between rounded-xl border border-stone-dark bg-surface p-3.5 text-sm shadow-sm"
             >
               <div>
-                <p className="font-medium">{r.reservation?.guest_name}</p>
-                <p className="text-xs text-gray-500" dir="ltr">
+                <p className="font-medium text-ink">{r.reservation?.guest_name}</p>
+                <p className="text-xs text-ink-faint" dir="ltr">
                   {r.reservation?.check_in} → {r.reservation?.check_out}
                 </p>
               </div>
               <div className="text-end">
-                <p>
+                <p className="tabular-nums text-ink">
                   {Number(r.share_amount).toFixed(2)} {dict.common.sar}
                 </p>
-                <p
-                  className={`text-xs ${
-                    r.payout_status === "paid" ? "text-green-600" : "text-yellow-600"
-                  }`}
-                >
+                <StatusPill tone={r.payout_status === "paid" ? "ok" : "warn"} className="mt-1">
                   {r.payout_status === "paid" ? dict.shares.paid : dict.shares.pending}
-                </p>
+                </StatusPill>
               </div>
             </li>
           ))}

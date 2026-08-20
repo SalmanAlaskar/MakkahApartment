@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function PartnersPage({
@@ -36,29 +37,33 @@ export default async function PartnersPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold">{dict.partners.title}</h1>
+      <PageHeader title={dict.partners.title} />
       <ul className="space-y-3">
         {(partners ?? []).map((p) => {
           const t = totals.get(p.id) ?? { total: 0, pending: 0, paid: 0 };
+          const paidPercent = t.total > 0 ? Math.max(0, Math.min(100, (t.paid / t.total) * 100)) : 0;
           return (
             <li key={p.id}>
               <Link
                 href={`/${locale}/partners/${p.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                className="block rounded-xl border border-stone-dark bg-surface p-4 shadow-sm transition hover:border-brand/30"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{p.name}</span>
-                  <span className="text-sm text-gray-500">
+                <div className="flex items-baseline justify-between">
+                  <span className="font-semibold text-ink">{p.name}</span>
+                  <span className="text-sm font-medium text-brand">
                     {Number(p.ownership_percent).toFixed(2)}%
                   </span>
                 </div>
-                <div className="mt-2 flex justify-between text-sm">
-                  <span className="text-gray-500">{dict.partners.totalEarned}</span>
-                  <span className="font-medium">
+                <div className="mt-2.5 flex justify-between text-sm">
+                  <span className="text-ink-muted">{dict.partners.totalEarned}</span>
+                  <span className="font-semibold tabular-nums text-ink">
                     {t.total.toFixed(2)} {dict.common.sar}
                   </span>
                 </div>
-                <div className="mt-1 flex justify-between text-xs text-gray-500">
+                <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-warn-soft">
+                  <div className="h-full rounded-full bg-ok" style={{ width: `${paidPercent}%` }} />
+                </div>
+                <div className="mt-1.5 flex justify-between text-xs text-ink-faint">
                   <span>
                     {dict.partners.pending}: {t.pending.toFixed(2)}
                   </span>

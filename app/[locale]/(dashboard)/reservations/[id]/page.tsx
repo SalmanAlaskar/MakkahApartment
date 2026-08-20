@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canManageReservations, canSeePartnerShares, isAdmin } from "@/lib/auth";
 import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
 import { deleteReservation } from "@/lib/actions/reservations";
 import { ShareStatusBadge } from "@/components/reservations/ShareStatusBadge";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function ReservationDetailPage({
@@ -47,22 +49,28 @@ export default async function ReservationDetailPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t.detail}</h1>
-        {canManageReservations(user.role) && (
-          <Link href={`/${locale}/reservations/${id}/edit`} className="text-sm text-gray-600 underline">
-            {dict.common.edit}
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={t.detail}
+        backHref={`/${locale}/reservations`}
+        action={
+          canManageReservations(user.role) ? (
+            <a
+              href={`/${locale}/reservations/${id}/edit`}
+              className={buttonClass("secondary", "!px-3 !py-1.5 text-xs")}
+            >
+              {dict.common.edit}
+            </a>
+          ) : undefined
+        }
+      />
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="font-medium">{reservation.guest_name}</h2>
-        <p className="text-sm text-gray-500" dir="ltr">
+      <Card>
+        <h2 className="font-semibold text-ink">{reservation.guest_name}</h2>
+        <p className="text-sm text-ink-faint" dir="ltr">
           {reservation.check_in} → {reservation.check_out}
         </p>
 
-        <dl className="mt-3 space-y-1 text-sm">
+        <dl className="mt-3.5 space-y-1.5 border-t border-stone pt-3.5 text-sm">
           <MoneyRow label={t.grossAmount} value={reservation.gross_amount} dict={dict} />
           <MoneyRow label={t.paidAmount} value={reservation.paid_amount} dict={dict} />
           <MoneyRow
@@ -76,25 +84,21 @@ export default async function ReservationDetailPage({
         </dl>
 
         {reservation.expense_note && (
-          <p className="mt-3 text-sm text-gray-600">
+          <p className="mt-3.5 border-t border-stone pt-3.5 text-sm text-ink-muted">
             {t.expenseNote}: {reservation.expense_note}
           </p>
         )}
-        {reservation.notes && (
-          <p className="mt-1 text-sm text-gray-600">
-            {t.notes}: {reservation.notes}
-          </p>
-        )}
-      </div>
+        {reservation.notes && <p className="mt-1.5 text-sm text-ink-muted">{t.notes}: {reservation.notes}</p>}
+      </Card>
 
       {canSeePartnerShares(user.role) && shares.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-2 text-sm font-medium text-gray-500">{t.shareBreakdown}</h3>
-          <ul className="space-y-2">
+        <Card>
+          <h3 className="mb-3 text-sm font-medium text-ink-muted">{t.shareBreakdown}</h3>
+          <ul className="space-y-2.5">
             {shares.map((s) => (
               <li key={s.partner_id} className="flex items-center justify-between text-sm">
-                <span>{s.partnerName}</span>
-                <span className="flex items-center gap-2">
+                <span className="font-medium text-ink">{s.partnerName}</span>
+                <span className="flex items-center gap-2 tabular-nums">
                   {Number(s.share_amount).toFixed(2)} {dict.common.sar}
                   <ShareStatusBadge
                     reservationId={id}
@@ -108,12 +112,12 @@ export default async function ReservationDetailPage({
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
       {isAdmin(user.role) && (
         <form action={deleteReservation.bind(null, id, locale)}>
-          <button type="submit" className="text-sm text-red-600 underline">
+          <button type="submit" className={buttonClass("danger", "text-sm")}>
             {dict.common.delete}
           </button>
         </form>
@@ -134,9 +138,9 @@ function MoneyRow({
   bold?: boolean;
 }) {
   return (
-    <div className={`flex justify-between ${bold ? "font-semibold" : ""}`}>
-      <span className="text-gray-500">{label}</span>
-      <span>
+    <div className={`flex justify-between ${bold ? "font-semibold text-ink" : "text-ink-muted"}`}>
+      <span>{label}</span>
+      <span className={`tabular-nums ${bold ? "text-ink" : ""}`}>
         {Number(value).toFixed(2)} {dict.common.sar}
       </span>
     </div>

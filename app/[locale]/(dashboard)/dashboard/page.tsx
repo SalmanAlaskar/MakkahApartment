@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { Card } from "@/components/ui/Card";
+import { StatusPill } from "@/components/ui/StatusPill";
 import type { Locale } from "@/lib/i18n/config";
 
 function nightsBetween(checkIn: string, checkOut: string): number {
@@ -95,8 +97,8 @@ export default async function DashboardPage({
   const recent = active.slice(0, 5);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">{d.title}</h1>
+    <div className="space-y-7">
+      <h1 className="text-xl font-semibold tracking-tight text-ink">{d.title}</h1>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
         <YearPill locale={locale} year="all" label={d.filterAll} active={selectedYear === "all"} />
@@ -117,34 +119,33 @@ export default async function DashboardPage({
         <StatCard label={d.netProfit} value={`${totals.net.toFixed(2)} ${dict.common.sar}`} highlight />
         {canSeePartnerShares(user.role) && (
           <>
-            <StatCard label={d.pendingPayouts} value={`${pendingPayouts.toFixed(2)} ${dict.common.sar}`} />
-            <StatCard label={d.paidPayouts} value={`${paidPayouts.toFixed(2)} ${dict.common.sar}`} />
+            <StatCard label={d.pendingPayouts} value={`${pendingPayouts.toFixed(2)} ${dict.common.sar}`} tone="warn" />
+            <StatCard label={d.paidPayouts} value={`${paidPayouts.toFixed(2)} ${dict.common.sar}`} tone="ok" />
           </>
         )}
       </div>
 
       {yearlyRoi.length > 0 && totalAcquisitionCost > 0 && (
         <div>
-          <h2 className="mb-2 text-sm font-medium text-gray-500">{d.roiTitle}</h2>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="space-y-2">
+          <h2 className="mb-2 text-sm font-medium text-ink-muted">{d.roiTitle}</h2>
+          <Card>
+            <div className="space-y-3">
               {yearlyRoi.map((row) => (
                 <div key={row.year} className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{row.year}</span>
-                  <span className="text-gray-500" dir="ltr">
+                  <span className="font-semibold text-ink">{row.year}</span>
+                  <span className="text-ink-muted" dir="ltr">
                     {row.net.toFixed(2)} {dict.common.sar}
                   </span>
-                  <span
-                    className={`font-semibold ${row.roiPercent >= 0 ? "text-green-600" : "text-red-600"}`}
-                    dir="ltr"
-                  >
-                    {row.roiPercent.toFixed(2)}%
-                  </span>
+                  <StatusPill tone={row.roiPercent >= 0 ? "ok" : "bad"} className="tabular-nums">
+                    <span dir="ltr">{row.roiPercent.toFixed(2)}%</span>
+                  </StatusPill>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-gray-400">{d.roiNote}</p>
-          </div>
+            <p className="mt-4 border-t border-stone-dark pt-3 text-xs leading-relaxed text-ink-faint">
+              {d.roiNote}
+            </p>
+          </Card>
         </div>
       )}
 
@@ -168,8 +169,10 @@ function YearPill({
   return (
     <Link
       href={year === "all" ? `/${locale}/dashboard` : `/${locale}/dashboard?year=${year}`}
-      className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm ${
-        active ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600"
+      className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+        active
+          ? "bg-brand text-white"
+          : "border border-stone-dark bg-surface text-ink-muted hover:border-brand/40 hover:text-brand"
       }`}
     >
       {label}
@@ -177,13 +180,34 @@ function YearPill({
   );
 }
 
-function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function StatCard({
+  label,
+  value,
+  highlight,
+  tone,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  tone?: "ok" | "warn";
+}) {
+  const toneText = tone === "ok" ? "text-ok" : tone === "warn" ? "text-warn" : "text-ink";
   return (
     <div
-      className={`rounded-lg border border-gray-200 p-3 shadow-sm ${highlight ? "col-span-2 bg-gray-900 text-white" : "bg-white"}`}
+      className={`rounded-xl border p-3.5 shadow-sm ${
+        highlight ? "col-span-2 border-brand bg-brand text-white" : "border-stone-dark bg-surface"
+      }`}
     >
-      <p className={`text-xs ${highlight ? "text-gray-300" : "text-gray-500"}`}>{label}</p>
-      <p className="mt-1 text-lg font-semibold">{value}</p>
+      <p
+        className={`text-[11px] font-medium uppercase tracking-wide ${
+          highlight ? "text-white/70" : "text-ink-faint"
+        }`}
+      >
+        {label}
+      </p>
+      <p className={`mt-1 text-lg font-semibold tabular-nums ${highlight ? "text-white" : toneText}`}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -200,16 +224,16 @@ function Section({
   if (items.length === 0) return null;
   return (
     <div>
-      <h2 className="mb-2 text-sm font-medium text-gray-500">{title}</h2>
+      <h2 className="mb-2 text-sm font-medium text-ink-muted">{title}</h2>
       <ul className="space-y-2">
         {items.map((r) => (
           <li key={r.id}>
             <Link
               href={`/${locale}/reservations/${r.id}`}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+              className="flex items-center justify-between rounded-xl border border-stone-dark bg-surface p-3.5 text-sm shadow-sm transition hover:border-brand/30"
             >
-              <span>{r.guest_name}</span>
-              <span className="text-gray-500" dir="ltr">
+              <span className="font-medium text-ink">{r.guest_name}</span>
+              <span className="text-ink-faint" dir="ltr">
                 {r.check_in} → {r.check_out}
               </span>
             </Link>
