@@ -105,7 +105,9 @@
     "pending": "Pending",
     "paid": "Paid",
     "history": "Reservation history",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "markAllPaid": "Mark all as paid",
+    "confirmMarkAllPaid": "Mark every pending payout as paid? This cannot be undone in bulk."
   },
   "shares": {
     "markPaid": "Mark as paid",

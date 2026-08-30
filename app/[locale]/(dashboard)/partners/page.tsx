@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
+import { getCurrentUser, canSeePartnerShares, isAdmin } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { formatMoney } from "@/lib/format";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { MarkAllPaidButton } from "@/components/partners/MarkAllPaidButton";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function PartnersPage({
@@ -36,9 +37,22 @@ export default async function PartnersPage({
     totals.set(s.partner_id, entry);
   }
 
+  const totalPending = Array.from(totals.values()).reduce((sum, t) => sum + t.pending, 0);
+
   return (
     <div>
-      <PageHeader title={dict.partners.title} />
+      <PageHeader
+        title={dict.partners.title}
+        action={
+          isAdmin(user.role) && totalPending !== 0 ? (
+            <MarkAllPaidButton
+              locale={locale}
+              confirmMessage={dict.partners.confirmMarkAllPaid}
+              label={dict.partners.markAllPaid}
+            />
+          ) : undefined
+        }
+      />
       <ul className="space-y-3">
         {(partners ?? []).map((p) => {
           const t = totals.get(p.id) ?? { total: 0, pending: 0, paid: 0 };

@@ -36,3 +36,25 @@ export async function updateShareStatus(
   revalidatePath(`/${locale}/partners`);
   revalidatePath(`/${locale}/dashboard`);
 }
+
+// Bulk reconciliation: marks every currently-pending share as paid in one update.
+// Same rule as the single toggle above — never touches lib/finance.ts or share_amount.
+export async function markAllSharesPaid(locale: Locale) {
+  const user = await getCurrentUser();
+  if (!user || !isAdmin(user.role)) {
+    throw new Error("Not authorized to update payout status");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("reservation_shares")
+    .update({
+      payout_status: "paid",
+      paid_at: new Date().toISOString(),
+    })
+    .eq("payout_status", "pending");
+
+  if (error) throw error;
+
+  revalidatePath(`/${locale}`, "layout");
+}
