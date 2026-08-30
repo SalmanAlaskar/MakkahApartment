@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { formatMoney } from "@/lib/format";
 import { Card } from "@/components/ui/Card";
 import { StatusPill } from "@/components/ui/StatusPill";
 import type { Locale } from "@/lib/i18n/config";
@@ -110,17 +111,17 @@ export default async function DashboardPage({
       <div className="grid grid-cols-2 gap-3">
         <StatCard label={d.totalReservations} value={String(active.length)} />
         <StatCard label={d.totalNights} value={String(totals.nights)} />
-        <StatCard label={d.totalRent} value={`${totals.gross.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalCollected} value={`${totals.paid.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalOutstanding} value={`${outstanding.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalCommission} value={`${totals.fee.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalExpenses} value={`${totals.expense.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.totalMonthlyBills} value={`${totalMonthlyBills.toFixed(2)} ${dict.common.sar}`} />
-        <StatCard label={d.netProfit} value={`${totals.net.toFixed(2)} ${dict.common.sar}`} highlight />
+        <StatCard label={d.totalRent} value={`${formatMoney(totals.gross)} ${dict.common.sar}`} />
+        <StatCard label={d.totalCollected} value={`${formatMoney(totals.paid)} ${dict.common.sar}`} />
+        <StatCard label={d.totalOutstanding} value={`${formatMoney(outstanding)} ${dict.common.sar}`} />
+        <StatCard label={d.totalCommission} value={`${formatMoney(totals.fee)} ${dict.common.sar}`} />
+        <StatCard label={d.totalExpenses} value={`${formatMoney(totals.expense)} ${dict.common.sar}`} />
+        <StatCard label={d.totalMonthlyBills} value={`${formatMoney(totalMonthlyBills)} ${dict.common.sar}`} />
+        <StatCard label={d.netProfit} value={`${formatMoney(totals.net)} ${dict.common.sar}`} highlight />
         {canSeePartnerShares(user.role) && (
           <>
-            <StatCard label={d.pendingPayouts} value={`${pendingPayouts.toFixed(2)} ${dict.common.sar}`} tone="warn" />
-            <StatCard label={d.paidPayouts} value={`${paidPayouts.toFixed(2)} ${dict.common.sar}`} tone="ok" />
+            <StatCard label={d.pendingPayouts} value={`${formatMoney(pendingPayouts)} ${dict.common.sar}`} tone="warn" />
+            <StatCard label={d.paidPayouts} value={`${formatMoney(paidPayouts)} ${dict.common.sar}`} tone="ok" />
           </>
         )}
       </div>
@@ -134,7 +135,7 @@ export default async function DashboardPage({
                 <div key={row.year} className="flex items-center justify-between text-sm">
                   <span className="font-semibold text-ink">{row.year}</span>
                   <span className="text-ink-muted" dir="ltr">
-                    {row.net.toFixed(2)} {dict.common.sar}
+                    {formatMoney(row.net)} {dict.common.sar}
                   </span>
                   <StatusPill tone={row.roiPercent >= 0 ? "ok" : "bad"} className="tabular-nums">
                     <span dir="ltr">{row.roiPercent.toFixed(2)}%</span>

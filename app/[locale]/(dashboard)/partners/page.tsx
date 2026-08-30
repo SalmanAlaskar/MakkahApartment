@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { formatMoney } from "@/lib/format";
 import { PageHeader } from "@/components/ui/PageHeader";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -56,8 +57,8 @@ export default async function PartnersPage({
                 </div>
                 <div className="mt-2.5 flex justify-between text-sm">
                   <span className="text-ink-muted">{dict.partners.totalEarned}</span>
-                  <span className="font-semibold tabular-nums text-ink">
-                    {t.total.toFixed(2)} {dict.common.sar}
+                  <span className={`font-semibold tabular-nums ${t.total < 0 ? "text-bad" : "text-ink"}`}>
+                    {formatMoney(t.total)} {dict.common.sar}
                   </span>
                 </div>
                 <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-warn-soft">
@@ -65,10 +66,10 @@ export default async function PartnersPage({
                 </div>
                 <div className="mt-1.5 flex justify-between text-xs text-ink-faint">
                   <span>
-                    {dict.partners.pending}: {t.pending.toFixed(2)}
+                    {dict.partners.pending}: {formatMoney(t.pending)}
                   </span>
                   <span>
-                    {dict.partners.paid}: {t.paid.toFixed(2)}
+                    {dict.partners.paid}: {formatMoney(t.paid)}
                   </span>
                 </div>
               </Link>

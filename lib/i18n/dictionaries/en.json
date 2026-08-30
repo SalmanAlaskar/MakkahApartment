@@ -93,7 +93,9 @@
     "sort_amount_asc": "Lowest net",
     "sort_guest_asc": "Guest name",
     "exportExcel": "Excel",
-    "exportPdf": "PDF"
+    "exportPdf": "PDF",
+    "searchPlaceholder": "Search by guest name",
+    "confirmDelete": "Delete this reservation? This cannot be undone."
   },
   "partners": {
     "title": "Partners",

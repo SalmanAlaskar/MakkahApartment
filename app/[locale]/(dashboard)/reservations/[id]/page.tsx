@@ -2,8 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canManageReservations, canSeePartnerShares, isAdmin } from "@/lib/auth";
 import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
-import { deleteReservation } from "@/lib/actions/reservations";
+import { formatMoney } from "@/lib/format";
 import { ShareStatusBadge } from "@/components/reservations/ShareStatusBadge";
+import { DeleteReservationButton } from "@/components/reservations/DeleteReservationButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { buttonClass } from "@/components/ui/button";
@@ -99,7 +100,9 @@ export default async function ReservationDetailPage({
               <li key={s.partner_id} className="flex items-center justify-between text-sm">
                 <span className="font-medium text-ink">{s.partnerName}</span>
                 <span className="flex items-center gap-2 tabular-nums">
-                  {Number(s.share_amount).toFixed(2)} {dict.common.sar}
+                  <span className={Number(s.share_amount) < 0 ? "text-bad" : undefined}>
+                    {formatMoney(s.share_amount)} {dict.common.sar}
+                  </span>
                   <ShareStatusBadge
                     reservationId={id}
                     partnerId={s.partner_id}
@@ -116,11 +119,12 @@ export default async function ReservationDetailPage({
       )}
 
       {isAdmin(user.role) && (
-        <form action={deleteReservation.bind(null, id, locale)}>
-          <button type="submit" className={buttonClass("danger", "text-sm")}>
-            {dict.common.delete}
-          </button>
-        </form>
+        <DeleteReservationButton
+          id={id}
+          locale={locale}
+          confirmMessage={t.confirmDelete}
+          label={dict.common.delete}
+        />
       )}
     </div>
   );
@@ -140,8 +144,8 @@ function MoneyRow({
   return (
     <div className={`flex justify-between ${bold ? "font-semibold text-ink" : "text-ink-muted"}`}>
       <span>{label}</span>
-      <span className={`tabular-nums ${bold ? "text-ink" : ""}`}>
-        {Number(value).toFixed(2)} {dict.common.sar}
+      <span className={`tabular-nums ${bold ? "text-ink" : ""} ${value < 0 ? "text-bad" : ""}`}>
+        {formatMoney(value)} {dict.common.sar}
       </span>
     </div>
   );

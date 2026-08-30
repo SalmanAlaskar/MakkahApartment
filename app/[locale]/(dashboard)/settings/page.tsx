@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { formatMoney } from "@/lib/format";
 import { updatePartner } from "@/lib/actions/settings";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -38,15 +39,15 @@ export default async function SettingsPage({
           <Row label={dict.settings.unitNumber} value={property.unit_number ?? "-"} />
           <Row
             label={dict.settings.propertyPrice}
-            value={`${Number(property.property_price).toFixed(2)} ${dict.common.sar}`}
+            value={`${formatMoney(property.property_price)} ${dict.common.sar}`}
           />
           <Row
             label={dict.settings.transactionFee}
-            value={`${Number(property.transaction_fee).toFixed(2)} ${dict.common.sar}`}
+            value={`${formatMoney(property.transaction_fee)} ${dict.common.sar}`}
           />
           <Row
             label={dict.settings.totalAcquisitionCost}
-            value={`${Number(property.total_acquisition_cost).toFixed(2)} ${dict.common.sar}`}
+            value={`${formatMoney(property.total_acquisition_cost)} ${dict.common.sar}`}
             bold
           />
         </Card>

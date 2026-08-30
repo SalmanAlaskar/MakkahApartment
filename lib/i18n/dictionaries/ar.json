@@ -93,7 +93,9 @@
     "sort_amount_asc": "الأقل صافياً",
     "sort_guest_asc": "اسم النزيل",
     "exportExcel": "إكسل",
-    "exportPdf": "PDF"
+    "exportPdf": "PDF",
+    "searchPlaceholder": "ابحث باسم النزيل",
+    "confirmDelete": "هل أنت متأكد من حذف هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء."
   },
   "partners": {
     "title": "الشركاء",

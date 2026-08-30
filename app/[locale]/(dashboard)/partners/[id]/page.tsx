@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, canSeePartnerShares } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { formatMoney } from "@/lib/format";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -72,19 +73,19 @@ export default async function PartnerDetailPage({
         <p className="text-sm text-ink-muted">
           {dict.partners.capitalContributed}:{" "}
           <span className="font-medium text-ink tabular-nums">
-            {Number(partner.capital_contributed).toFixed(2)} {dict.common.sar}
+            {formatMoney(partner.capital_contributed)} {dict.common.sar}
           </span>
         </p>
         <div className="mt-3.5 flex justify-between border-t border-stone pt-3.5 text-sm">
           <span className="text-ink-muted">{dict.partners.pending}</span>
           <span className="font-semibold tabular-nums text-warn">
-            {pending.toFixed(2)} {dict.common.sar}
+            {formatMoney(pending)} {dict.common.sar}
           </span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-ink-muted">{dict.partners.paid}</span>
           <span className="font-semibold tabular-nums text-ok">
-            {paid.toFixed(2)} {dict.common.sar}
+            {formatMoney(paid)} {dict.common.sar}
           </span>
         </div>
       </Card>
@@ -104,8 +105,8 @@ export default async function PartnerDetailPage({
                 </p>
               </div>
               <div className="text-end">
-                <p className="tabular-nums text-ink">
-                  {Number(r.share_amount).toFixed(2)} {dict.common.sar}
+                <p className={`tabular-nums ${Number(r.share_amount) < 0 ? "text-bad" : "text-ink"}`}>
+                  {formatMoney(r.share_amount)} {dict.common.sar}
                 </p>
                 <StatusPill tone={r.payout_status === "paid" ? "ok" : "warn"} className="mt-1">
                   {r.payout_status === "paid" ? dict.shares.paid : dict.shares.pending}

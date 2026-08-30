@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { computeFee, computeShares, type FeeMethod } from "@/lib/finance";
+import { formatMoney } from "@/lib/format";
 import type { Dictionary } from "@/lib/i18n/getDictionary";
 import type { PartnerRow } from "@/lib/types/database";
 import type { ReservationActionState } from "@/lib/actions/reservations";
@@ -345,13 +346,13 @@ export function ReservationForm({
         <div className="flex justify-between text-sm text-ink-muted">
           <span>{t.feeAmount}</span>
           <span className="tabular-nums text-ink">
-            {preview.feeAmount.toFixed(2)} {dict.common.sar}
+            {formatMoney(preview.feeAmount)} {dict.common.sar}
           </span>
         </div>
         <div className="mt-1.5 flex justify-between text-sm font-semibold">
           <span className="text-ink">{t.netAmount}</span>
-          <span className="tabular-nums text-brand">
-            {preview.netAmount.toFixed(2)} {dict.common.sar}
+          <span className={`tabular-nums ${preview.netAmount < 0 ? "text-bad" : "text-brand"}`}>
+            {formatMoney(preview.netAmount)} {dict.common.sar}
           </span>
         </div>
         <div className="mt-3 space-y-1.5 border-t border-brand/15 pt-3">
@@ -361,8 +362,8 @@ export function ReservationForm({
             return (
               <div key={share.partnerId} className="flex justify-between text-sm">
                 <span className="text-ink-muted">{partner?.name}</span>
-                <span className="tabular-nums text-ink">
-                  {share.shareAmount.toFixed(2)} {dict.common.sar}
+                <span className={`tabular-nums ${share.shareAmount < 0 ? "text-bad" : "text-ink"}`}>
+                  {formatMoney(share.shareAmount)} {dict.common.sar}
                 </span>
               </div>
             );
