@@ -18,7 +18,7 @@ export function proxy(request: NextRequest) {
 
   const locale = maybeLocale;
   const rest = "/" + segments.slice(1).join("/");
-  const isAuthRoute = rest.startsWith("/login");
+  const isAuthRoute = rest.startsWith("/login") || rest.startsWith("/reset-password");
   const authenticated = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value);
 
   if (!authenticated && !isAuthRoute) {

@@ -84,6 +84,13 @@ export type MonthlyExpenseRow = {
   updated_at: string;
 }
 
+export type AppCredentialsRow = {
+  id: boolean;
+  password_hash: string;
+  recovery_code_hash: string;
+  updated_at: string;
+}
+
 type ReservationShareInput = {
   partner_id: string;
   ownership_percent_snapshot: number;
@@ -169,6 +176,12 @@ export type Database = {
         Row: MonthlyExpenseRow;
         Insert: Partial<MonthlyExpenseRow>;
         Update: Partial<MonthlyExpenseRow>;
+        Relationships: [];
+      };
+      app_credentials: {
+        Row: AppCredentialsRow;
+        Insert: Partial<AppCredentialsRow>;
+        Update: Partial<AppCredentialsRow>;
         Relationships: [];
       };
     };

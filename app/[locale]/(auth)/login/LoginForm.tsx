@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { login, type LoginActionState } from "@/lib/actions/auth";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/getDictionary";
@@ -40,6 +41,12 @@ export function LoginForm({ locale, dict }: { locale: Locale; dict: Dictionary["
       >
         {dict.signIn}
       </button>
+      <Link
+        href={`/${locale}/reset-password`}
+        className="block text-center text-sm font-medium text-ink-muted transition hover:text-brand"
+      >
+        {dict.forgotPassword}
+      </Link>
     </form>
   );
 }

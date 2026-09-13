@@ -25,7 +25,8 @@
     "subtitle": "أدخل كلمة المرور للمتابعة",
     "passwordLabel": "كلمة المرور",
     "signIn": "تسجيل الدخول",
-    "error": "كلمة المرور غير صحيحة."
+    "error": "كلمة المرور غير صحيحة.",
+    "forgotPassword": "نسيت كلمة المرور؟"
   },
   "dashboard": {
     "title": "الرئيسية",
@@ -135,5 +136,28 @@
     "fullName": "الاسم الكامل",
     "linkedPartner": "الشريك المرتبط",
     "none": "بلا (شركة التشغيل)"
+  },
+  "resetPassword": {
+    "title": "استعادة كلمة المرور",
+    "subtitle": "أدخل رمز الاسترداد لتعيين كلمة مرور جديدة",
+    "recoveryCodeLabel": "رمز الاسترداد",
+    "newPasswordLabel": "كلمة المرور الجديدة",
+    "confirmPasswordLabel": "تأكيد كلمة المرور",
+    "submit": "تعيين كلمة المرور",
+    "backToLogin": "العودة لتسجيل الدخول",
+    "errorCode": "رمز الاسترداد غير صحيح.",
+    "errorShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+    "errorMismatch": "كلمتا المرور غير متطابقتين."
+  },
+  "changePassword": {
+    "title": "تغيير كلمة المرور",
+    "currentPasswordLabel": "كلمة المرور الحالية",
+    "newPasswordLabel": "كلمة المرور الجديدة",
+    "confirmPasswordLabel": "تأكيد كلمة المرور الجديدة",
+    "submit": "تحديث كلمة المرور",
+    "success": "تم تحديث كلمة المرور بنجاح.",
+    "errorCurrent": "كلمة المرور الحالية غير صحيحة.",
+    "errorShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+    "errorMismatch": "كلمتا المرور غير متطابقتين."
   }
 }

@@ -25,7 +25,8 @@
     "subtitle": "Enter the password to continue",
     "passwordLabel": "Password",
     "signIn": "Sign in",
-    "error": "Incorrect password."
+    "error": "Incorrect password.",
+    "forgotPassword": "Forgot password?"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -135,5 +136,28 @@
     "fullName": "Full name",
     "linkedPartner": "Linked partner",
     "none": "None (manager)"
+  },
+  "resetPassword": {
+    "title": "Reset password",
+    "subtitle": "Enter your recovery code to set a new password",
+    "recoveryCodeLabel": "Recovery code",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm password",
+    "submit": "Set new password",
+    "backToLogin": "Back to login",
+    "errorCode": "Incorrect recovery code.",
+    "errorShort": "Password must be at least 8 characters.",
+    "errorMismatch": "Passwords do not match."
+  },
+  "changePassword": {
+    "title": "Change password",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm new password",
+    "submit": "Update password",
+    "success": "Password updated successfully.",
+    "errorCurrent": "Current password is incorrect.",
+    "errorShort": "Password must be at least 8 characters.",
+    "errorMismatch": "Passwords do not match."
   }
 }

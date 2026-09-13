@@ -7,6 +7,7 @@ import { updatePartner } from "@/lib/actions/settings";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { buttonClass } from "@/components/ui/button";
+import { ChangePasswordForm } from "@/components/settings/ChangePasswordForm";
 import type { Locale } from "@/lib/i18n/config";
 
 export default async function SettingsPage({
@@ -92,6 +93,13 @@ export default async function SettingsPage({
             </li>
           ))}
         </ul>
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-sm font-medium text-ink-muted">{dict.changePassword.title}</h2>
+        <Card>
+          <ChangePasswordForm locale={locale} dict={dict.changePassword} />
+        </Card>
       </div>
     </div>
   );
