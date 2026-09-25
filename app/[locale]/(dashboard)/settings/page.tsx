@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
@@ -93,6 +94,16 @@ export default async function SettingsPage({
             </li>
           ))}
         </ul>
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-sm font-medium text-ink-muted">{dict.contract.title}</h2>
+        <Card>
+          <Link href={`/${locale}/contract`} className="flex items-center justify-between text-sm font-medium text-brand">
+            <span>{dict.contract.title}</span>
+            <span aria-hidden className="rtl:rotate-180">›</span>
+          </Link>
+        </Card>
       </div>
 
       <div>

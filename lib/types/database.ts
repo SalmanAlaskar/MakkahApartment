@@ -91,6 +91,26 @@ export type AppCredentialsRow = {
   updated_at: string;
 }
 
+export type PartnershipContractRow = {
+  id: boolean;
+  content: string;
+  version: number;
+  updated_at: string;
+}
+
+export type ContractSignatureRow = {
+  id: string;
+  partner_id: string;
+  contract_version: number;
+  sign_token: string;
+  signer_name: string | null;
+  national_id: string | null;
+  signature_data: string | null;
+  signed_at: string | null;
+  ip_address: string | null;
+  created_at: string;
+}
+
 type ReservationShareInput = {
   partner_id: string;
   ownership_percent_snapshot: number;
@@ -182,6 +202,18 @@ export type Database = {
         Row: AppCredentialsRow;
         Insert: Partial<AppCredentialsRow>;
         Update: Partial<AppCredentialsRow>;
+        Relationships: [];
+      };
+      partnership_contract: {
+        Row: PartnershipContractRow;
+        Insert: Partial<PartnershipContractRow>;
+        Update: Partial<PartnershipContractRow>;
+        Relationships: [];
+      };
+      contract_signatures: {
+        Row: ContractSignatureRow;
+        Insert: Partial<ContractSignatureRow>;
+        Update: Partial<ContractSignatureRow>;
         Relationships: [];
       };
     };

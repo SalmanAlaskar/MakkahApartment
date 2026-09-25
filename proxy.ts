@@ -18,7 +18,11 @@ export function proxy(request: NextRequest) {
 
   const locale = maybeLocale;
   const rest = "/" + segments.slice(1).join("/");
-  const isAuthRoute = rest.startsWith("/login") || rest.startsWith("/reset-password");
+  const isAuthRoute =
+    rest.startsWith("/login") ||
+    rest.startsWith("/reset-password") ||
+    rest.startsWith("/sign/") ||
+    rest.startsWith("/attachments/");
   const authenticated = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value);
 
   if (!authenticated && !isAuthRoute) {
