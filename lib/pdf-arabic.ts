@@ -9,7 +9,25 @@ export function toVisualArabic(text: string): string {
   return reshaped.split("").reverse().join("");
 }
 
-const ARABIC_CHAR = /[؀-ۿݐ-ݿ]/;
+// Arabic LETTERS only -- deliberately excludes Arabic-range punctuation (، ؛ ؟ etc.). A
+// token like a national ID immediately followed by an Arabic comma with no space ("6813290801،")
+// contains a codepoint from the Arabic Unicode block, but has no actual Arabic letter in it;
+// classifying it as "Arabic" reversed the digits along with the comma (a real bug: a 10-digit
+// ID rendered as its own mirror image in an exported PDF). Only real Arabic letters should
+// trigger reshaping + reversal.
+const ARABIC_LETTER = /[ء-ي]/;
+
+// Bidi rendering mirrors paired brackets for RTL runs (an opening paren drawn in a
+// right-to-left context should render as the closing shape); pdfkit does not do this, so it
+// must be applied manually wherever we reverse a run's character order.
+const MIRROR_PAIRS: Record<string, string> = { "(": ")", ")": "(", "[": "]", "]": "[", "{": "}", "}": "{" };
+function mirrorBrackets(text: string): string {
+  return [...text].map((ch) => MIRROR_PAIRS[ch] ?? ch).join("");
+}
+
+function reshapeAndReverse(text: string): string {
+  return mirrorBrackets(ArabicReshaper.convertArabic(text).split("").reverse().join(""));
+}
 
 // Draws one logical line of (possibly mixed Arabic + number/Latin) text, right-aligned to
 // `rightX`, by laying out word-by-word right-to-left ourselves with an explicit space width
@@ -28,8 +46,8 @@ export function drawBidiLine(doc: PDFKit.PDFDocument, text: string, rightX: numb
   let cursor = rightX;
 
   words.forEach((word, i) => {
-    const isArabic = [...word].some((ch) => ARABIC_CHAR.test(ch));
-    const display = isArabic ? ArabicReshaper.convertArabic(word).split("").reverse().join("") : word;
+    const isArabic = [...word].some((ch) => ARABIC_LETTER.test(ch));
+    const display = isArabic ? reshapeAndReverse(word) : word;
     const width = doc.widthOfString(display);
     if (i > 0) cursor -= spaceWidth;
     doc.text(display, cursor - width, y, { lineBreak: false });
