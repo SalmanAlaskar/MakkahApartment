@@ -84,6 +84,7 @@ export async function GET() {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": 'attachment; filename="partnership_contract.pdf"',
+      "Cache-Control": "no-store",
     },
   });
 }
