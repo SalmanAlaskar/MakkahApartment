@@ -8,7 +8,7 @@ import { drawBidiLine, wrapText } from "@/lib/pdf-arabic";
 export const runtime = "nodejs";
 
 function buildPdfBuffer(content: string, signatures: Array<{ partnerName: string; signedAt: string | null }>): Promise<Buffer> {
-  const fontPath = path.join(process.cwd(), "assets/fonts/NotoNaskhArabic-Regular.ttf");
+  const fontPath = path.join(process.cwd(), "assets/fonts/IBMPlexSansArabic-Regular.ttf");
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 48, size: "A4", font: fontPath });
