@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local browser binary for testing PDF export (puppeteer @puppeteer/browsers install)
+/chrome

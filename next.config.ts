@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./assets/fonts/**/*"],
   },
+  // @sparticuz/chromium ships a compressed binary it unpacks at runtime; letting the bundler
+  // trace into it (instead of requiring it normally as a Node module) breaks that unpacking.
+  serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
 };
 
 export default nextConfig;
