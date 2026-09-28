@@ -34,10 +34,6 @@ export default async function SignPage({
           <p className="mt-1 text-sm text-ink-muted">{context.partnerName}</p>
         </div>
 
-        <div className="rounded-lg bg-warn-soft px-3.5 py-2.5 text-xs leading-relaxed text-warn">
-          {dict.contract.disclaimerBody}
-        </div>
-
         <div className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-2xl border border-stone-dark bg-surface p-5 text-sm leading-relaxed text-ink shadow-sm">
           {context.contractContent}
         </div>

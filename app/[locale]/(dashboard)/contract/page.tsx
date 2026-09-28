@@ -39,11 +39,6 @@ export default async function ContractPage({
         }
       />
 
-      <div className="rounded-lg bg-warn-soft px-3.5 py-2.5 text-xs leading-relaxed text-warn">
-        <p className="mb-1 font-semibold">{c.disclaimerTitle}</p>
-        <p>{c.disclaimerBody}</p>
-      </div>
-
       {contract ? (
         <>
           <Card>
