@@ -17,13 +17,21 @@ export async function updatePartner(partnerId: string, locale: Locale, formData:
   await requireAdmin();
   const ownershipPercent = Number(formData.get("ownershipPercent"));
   const capitalContributed = Number(formData.get("capitalContributed"));
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const nationalId = String(formData.get("nationalId") ?? "").trim();
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("partners")
-    .update({ ownership_percent: ownershipPercent, capital_contributed: capitalContributed })
+    .update({
+      ownership_percent: ownershipPercent,
+      capital_contributed: capitalContributed,
+      full_name: fullName || null,
+      national_id: nationalId || null,
+    })
     .eq("id", partnerId);
 
   if (error) throw error;
   revalidatePath(`/${locale}/settings`);
+  revalidatePath(`/${locale}/contract`);
 }

@@ -13,6 +13,8 @@ export type PayoutStatus = "pending" | "paid";
 export type PartnerRow = {
   id: string;
   name: string;
+  full_name: string | null;
+  national_id: string | null;
   ownership_percent: number;
   capital_contributed: number;
   display_order: number;

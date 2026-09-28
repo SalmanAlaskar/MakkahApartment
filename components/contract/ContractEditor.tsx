@@ -9,11 +9,13 @@ import type { Dictionary } from "@/lib/i18n/getDictionary";
 export function ContractEditor({
   locale,
   content,
+  renderedContent,
   version,
   dict,
 }: {
   locale: Locale;
   content: string;
+  renderedContent: string;
   version: number;
   dict: Dictionary;
 }) {
@@ -38,7 +40,7 @@ export function ContractEditor({
           </button>
         </div>
         <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-lg border border-stone-dark bg-stone/40 p-4 text-sm leading-relaxed text-ink">
-          {content}
+          {renderedContent}
         </div>
       </div>
     );
@@ -55,6 +57,7 @@ export function ContractEditor({
       <label className="block text-sm font-medium text-ink-muted" htmlFor="content">
         {c.contentLabel}
       </label>
+      <p className="rounded-lg bg-brand-soft px-3 py-2 text-xs leading-relaxed text-brand">{c.tokenHint}</p>
       <textarea
         id="content"
         name="content"

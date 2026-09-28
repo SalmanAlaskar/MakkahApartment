@@ -5,7 +5,7 @@ export async function getPartners(): Promise<PartnerRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("partners")
-    .select("id, name, ownership_percent, capital_contributed, display_order, created_at")
+    .select("*")
     .order("display_order");
 
   if (error) throw error;

@@ -76,7 +76,7 @@ export async function GET() {
   if (!contract) return new NextResponse("Not found", { status: 404 });
 
   const buffer = await buildPdfBuffer(
-    contract.content,
+    contract.renderedContent,
     contract.signatures.map((s) => ({ partnerName: s.partnerName, signedAt: s.signedAt })),
   );
 

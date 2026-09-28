@@ -4,6 +4,8 @@ import { listAttachments } from "@/lib/storage/contract-attachments";
 import type { Locale } from "@/lib/i18n/config";
 import { SignForm } from "./SignForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function SignPage({
   params,
 }: {

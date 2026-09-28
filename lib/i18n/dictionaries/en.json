@@ -108,7 +108,9 @@
     "history": "Reservation history",
     "exportCsv": "Export CSV",
     "markAllPaid": "Mark all as paid",
-    "confirmMarkAllPaid": "Mark every pending payout as paid? This cannot be undone in bulk."
+    "confirmMarkAllPaid": "Mark every pending payout as paid? This cannot be undone in bulk.",
+    "fullName": "Full name (for contract)",
+    "nationalId": "National ID (for contract)"
   },
   "shares": {
     "markPaid": "Mark as paid",
@@ -180,7 +182,8 @@
     "noAttachments": "No attachments yet.",
     "version": "Version",
     "errorEmpty": "Contract text cannot be empty.",
-    "confirmDeleteAttachment": "Delete this attachment?"
+    "confirmDeleteAttachment": "Delete this attachment?",
+    "tokenHint": "Partner names and national IDs aren't typed here directly — edit them on the Settings page, and they'll automatically replace tokens like {{PARTNER_1_FULL_NAME}} and {{PARTNER_1_NATIONAL_ID}} (1, 2, 3, 4 match First through Fourth Party)."
   },
   "sign": {
     "title": "Sign the Partnership Contract",

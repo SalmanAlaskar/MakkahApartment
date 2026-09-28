@@ -13,6 +13,8 @@ import { AttachmentUploadForm } from "@/components/contract/AttachmentUploadForm
 import { DeleteAttachmentButton } from "@/components/contract/DeleteAttachmentButton";
 import type { Locale } from "@/lib/i18n/config";
 
+export const dynamic = "force-dynamic";
+
 export default async function ContractPage({
   params,
 }: {
@@ -42,7 +44,13 @@ export default async function ContractPage({
       {contract ? (
         <>
           <Card>
-            <ContractEditor locale={locale} content={contract.content} version={contract.version} dict={dict} />
+            <ContractEditor
+              locale={locale}
+              content={contract.content}
+              renderedContent={contract.renderedContent}
+              version={contract.version}
+              dict={dict}
+            />
           </Card>
 
           <div>
