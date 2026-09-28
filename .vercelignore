@@ -1,0 +1,2 @@
+# local browser binary for testing PDF export (puppeteer @puppeteer/browsers install)
+/chrome
